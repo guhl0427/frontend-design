@@ -8,14 +8,50 @@ interface StyleCardProps {
   onOpen: (item: StyleItem) => void;
   /** 打开定制抽屉 */
   onCustomize: (item: StyleItem) => void;
+  /** 是否已收藏 */
+  isFavorite: boolean;
+  /** 切换收藏态 */
+  onToggleFavorite: (id: string) => void;
+  /** 是否已在对比集 */
+  inCompare: boolean;
+  /** 加入 / 移出对比集 */
+  onToggleCompare: (item: StyleItem) => void;
 }
 
-/** 单张风格卡片：预览区 + 元信息 + 操作按钮 */
-export default function StyleCard({ item, onOpen, onCustomize }: StyleCardProps): JSX.Element {
+/** 单张风格卡片：预览区 + 收藏星标 + 元信息 + 操作按钮 */
+export default function StyleCard({
+  item,
+  onOpen,
+  onCustomize,
+  isFavorite,
+  onToggleFavorite,
+  inCompare,
+  onToggleCompare,
+}: StyleCardProps): JSX.Element {
   const { copied, copy } = useCopy();
 
   return (
-    <article className="group overflow-hidden rounded-xl border border-white/5 bg-surface-raised transition-colors duration-200 hover:border-brand/40">
+    <article className="group relative overflow-hidden rounded-xl border border-white/5 bg-surface-raised transition-colors duration-200 hover:border-brand/40">
+      {/*
+        收藏星标：绝对定位于卡片右上角。
+        预览区已被一个 <button> 包住，星标必须放在 article 上做兄弟节点，
+        否则会产生 button 嵌套（HTML 非法且交互异常）。
+      */}
+      <button
+        type="button"
+        onClick={() => onToggleFavorite(item.id)}
+        aria-pressed={isFavorite}
+        aria-label={isFavorite ? `取消收藏「${item.nameZh}」` : `收藏「${item.nameZh}」`}
+        title={isFavorite ? '取消收藏' : '收藏'}
+        className={`absolute top-3 right-3 z-10 cursor-pointer rounded-full border px-2 py-0.5 text-base leading-none backdrop-blur transition-colors ${
+          isFavorite
+            ? 'border-brand bg-brand-soft text-brand'
+            : 'border-white/10 bg-surface/80 text-ink-faint hover:text-ink'
+        }`}
+      >
+        {isFavorite ? '★' : '☆'}
+      </button>
+
       {/* 实时预览区（点击打开详情） */}
       <button
         type="button"
@@ -47,7 +83,7 @@ export default function StyleCard({ item, onOpen, onCustomize }: StyleCardProps)
           ))}
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="mt-4 grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => onOpen(item)}
@@ -61,6 +97,19 @@ export default function StyleCard({ item, onOpen, onCustomize }: StyleCardProps)
             className="cursor-pointer rounded-lg border border-brand/40 px-2 py-2 text-[13px] whitespace-nowrap text-brand transition-colors hover:bg-brand-soft"
           >
             定制
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggleCompare(item)}
+            aria-pressed={inCompare}
+            aria-label={inCompare ? `将「${item.nameZh}」移出对比集` : `将「${item.nameZh}」加入对比集`}
+            className={`cursor-pointer rounded-lg border px-2 py-2 text-[13px] whitespace-nowrap transition-colors ${
+              inCompare
+                ? 'border-brand bg-brand-soft text-brand'
+                : 'border-white/10 text-ink hover:border-brand/50 hover:text-brand'
+            }`}
+          >
+            {inCompare ? '已加入对比' : '对比'}
           </button>
           <button
             type="button"

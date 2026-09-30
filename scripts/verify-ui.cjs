@@ -2,6 +2,7 @@
  * 浏览器级验证（playwright-core + 本地 chromium，无需 playwright-cli）
  * 覆盖：S1 焦点管理 / W2 色板底衬 / W3 预览 aria-hidden / W7 favicon+OG
  *       F1 深链分享 / F2 Markdown 导出 / F4 定制抽屉
+ *       F3 收藏与最近（localStorage + URL 纯净性）/ F5 多风格对比 / F9 DESIGN.md 导出
  *       回归：稀疏分类吸顶、li 语义与标题层级、控制台错误
  *
  * 运行：NODE_PATH=<托管 workspace>/node_modules node scripts/verify-ui.cjs [baseUrl]
@@ -304,6 +305,403 @@ async function main() {
   );
   await page.keyboard.press('Escape');
   await page.waitForTimeout(300);
+
+  /* ============================ 公共工具 ============================ */
+
+  /** 读取 localStorage 原始字符串 */
+  const readLS = (key) => page.evaluate((k) => window.localStorage.getItem(k), key);
+
+  /** 清空本地库后回到干净首页（避免断言之间相互污染） */
+  const resetApp = async () => {
+    await page.evaluate(() => window.localStorage.clear());
+    await page.goto(`${BASE}/`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(450);
+  };
+
+  /** 拦截下载：记录 anchor.download 并保留最后一个 Blob（goto 之后必须重新安装） */
+  const installDownloadSpy = () =>
+    page.evaluate(() => {
+      window.__dl = [];
+      window.__blob = null;
+      const origCreate = URL.createObjectURL.bind(URL);
+      URL.createObjectURL = (blob) => {
+        window.__blob = blob;
+        return origCreate(blob);
+      };
+      HTMLAnchorElement.prototype.click = function () {
+        window.__dl.push(this.download);
+      };
+    });
+
+  /* ==================== F3 收藏 / 最近（本地库） ==================== */
+
+  await resetApp();
+
+  /* F3a 卡片星标切换收藏（aria-pressed 与字形联动） */
+  const star = page.locator('article').first().locator('button[aria-label*="收藏"]');
+  const starBefore = await star.evaluate((el) => ({
+    pressed: el.getAttribute('aria-pressed'),
+    text: el.textContent.trim(),
+  }));
+  await star.click();
+  await page.waitForTimeout(350);
+  const starAfter = await star.evaluate((el) => ({
+    pressed: el.getAttribute('aria-pressed'),
+    text: el.textContent.trim(),
+  }));
+  check(
+    'F3a 卡片星标 aria-pressed 切换收藏',
+    starBefore.pressed === 'false' && starBefore.text === '☆' && starAfter.pressed === 'true' && starAfter.text === '★',
+    `前=${JSON.stringify(starBefore)} 后=${JSON.stringify(starAfter)}`,
+  );
+
+  /* F3b 收藏写入 localStorage（key: style-gallery:favorites） */
+  const favRaw = await readLS('style-gallery:favorites');
+  let favIds = [];
+  try {
+    favIds = JSON.parse(favRaw || '[]');
+  } catch {
+    favIds = null;
+  }
+  check(
+    'F3b 收藏持久化到 style-gallery:favorites',
+    Array.isArray(favIds) && favIds.length === 1 && typeof favIds[0] === 'string' && favIds[0].length > 0,
+    `raw=${favRaw}`,
+  );
+
+  /* F3c ★ 收藏 / ◷ 最近 chip 固定在最前且带 aria-pressed */
+  const chipHead = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('.sticky button'))
+      .slice(0, 2)
+      .map((b) => b.textContent.trim()),
+  );
+  const favChipPressed = await page.getByRole('button', { name: '筛选已收藏的风格' }).getAttribute('aria-pressed');
+  check(
+    'F3c ★ 收藏 / ◷ 最近 chip 位于筛选栏最前',
+    chipHead[0] === '★ 收藏' && chipHead[1] === '◷ 最近' && favChipPressed === 'false',
+    `前两枚=${JSON.stringify(chipHead)} 收藏 chip pressed=${favChipPressed}`,
+  );
+
+  /* F3d 收藏筛选生效，且 URL 绝不含 cat=（本地筛选不得写入 URL） */
+  const favName = (await page.locator('article').first().locator('h3').textContent()).trim();
+  await page.getByRole('button', { name: '筛选已收藏的风格' }).click();
+  await page.waitForTimeout(400);
+  const favView = await page.evaluate(() => ({
+    cards: document.querySelectorAll('article').length,
+    search: location.search,
+    names: Array.from(document.querySelectorAll('article h3')).map((h) => h.textContent.trim()),
+  }));
+  check(
+    'F3d 收藏筛选仅显示已收藏且 URL 保持纯净',
+    favView.cards === 1 && favView.names[0] === favName && favView.search === '',
+    JSON.stringify(favView),
+  );
+
+  /* F3e 最近浏览：连续打开 10 款 → 严格 ≤ 8、无重复、最近在前 */
+  await resetApp();
+  const openedIds = [];
+  for (let i = 0; i < 10; i += 1) {
+    await page.locator('article').nth(i).locator('button[aria-label*="详情"]').click();
+    await page.waitForTimeout(230);
+    openedIds.push(await page.evaluate(() => new URLSearchParams(location.search).get('style')));
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(230);
+  }
+  const recentIds = JSON.parse((await readLS('style-gallery:recent')) || '[]');
+  const expectedRecent = openedIds.slice().reverse().slice(0, 8);
+  check(
+    'F3e 最近浏览上限 8、去重、最近在前',
+    openedIds.length === 10 &&
+      openedIds.every(Boolean) &&
+      new Set(openedIds).size === 10 &&
+      recentIds.length === 8 &&
+      new Set(recentIds).size === 8 &&
+      JSON.stringify(recentIds) === JSON.stringify(expectedRecent),
+    `打开=${JSON.stringify(openedIds)} recent=${JSON.stringify(recentIds)}`,
+  );
+
+  /* F3f 最近筛选生效，且 URL 依然纯净 */
+  await page.getByRole('button', { name: '筛选最近浏览的风格' }).click();
+  await page.waitForTimeout(400);
+  const recentView = await page.evaluate(() => ({
+    cards: document.querySelectorAll('article').length,
+    search: location.search,
+  }));
+  check(
+    'F3f 最近筛选显示 8 条且 URL 不含 cat=',
+    recentView.cards === 8 && recentView.search === '',
+    JSON.stringify(recentView),
+  );
+
+  /* F3g / F3h 两个本地空态文案各自正确 */
+  await resetApp();
+  await page.getByRole('button', { name: '筛选已收藏的风格' }).click();
+  await page.waitForTimeout(400);
+  const favEmpty = await page.evaluate(() => document.body.textContent);
+  await page.getByRole('button', { name: '筛选最近浏览的风格' }).click();
+  await page.waitForTimeout(400);
+  const recentEmpty = await page.evaluate(() => document.body.textContent);
+  check(
+    'F3g 收藏空态文案正确',
+    favEmpty.includes('还没有收藏任何风格') && favEmpty.includes('☆ 收藏'),
+    `含收藏空态=${favEmpty.includes('还没有收藏任何风格')}`,
+  );
+  check(
+    'F3h 最近空态文案正确且不与收藏空态混淆',
+    recentEmpty.includes('还没有浏览记录') && !recentEmpty.includes('还没有收藏任何风格'),
+    `含最近空态=${recentEmpty.includes('还没有浏览记录')}`,
+  );
+
+  /* ========================= F5 多风格对比 ========================= */
+
+  await resetApp();
+
+  /* F5a 卡片「对比」按钮加入对比集并唤起对比条 */
+  const firstCard = page.locator('article').first();
+  const firstName = (await firstCard.locator('h3').textContent()).trim();
+  const cmpBtn = firstCard.locator('button[aria-label*="对比集"]');
+  const cmpBefore = await cmpBtn.evaluate((el) => ({
+    pressed: el.getAttribute('aria-pressed'),
+    text: el.textContent.trim(),
+  }));
+  await cmpBtn.click();
+  await page.waitForTimeout(350);
+  const cmpAfter = await cmpBtn.evaluate((el) => ({
+    pressed: el.getAttribute('aria-pressed'),
+    text: el.textContent.trim(),
+  }));
+  const trayText = await page.evaluate(() => {
+    const tray = document.querySelector('.fixed.inset-x-0.bottom-0');
+    return tray ? tray.textContent : null;
+  });
+  check(
+    'F5a 卡片对比按钮加入对比集并出现对比条',
+    cmpBefore.text === '对比' &&
+      cmpAfter.text === '已加入对比' &&
+      cmpAfter.pressed === 'true' &&
+      trayText !== null &&
+      trayText.includes(firstName),
+    `前=${JSON.stringify(cmpBefore)} 后=${JSON.stringify(cmpAfter)} tray=${JSON.stringify(trayText)}`,
+  );
+
+  /* F5b 对比条单项移除后整条消失 */
+  await page.locator('.fixed.inset-x-0.bottom-0 button[aria-label^="从对比集移除"]').first().click();
+  await page.waitForTimeout(350);
+  const trayAfterRemove = await page.evaluate(() => ({
+    tray: !!document.querySelector('.fixed.inset-x-0.bottom-0'),
+    cardText: document.querySelector('article button[aria-label*="对比集"]').textContent.trim(),
+  }));
+  check(
+    'F5b 对比条单项移除后整条消失',
+    trayAfterRemove.tray === false && trayAfterRemove.cardText === '对比',
+    JSON.stringify(trayAfterRemove),
+  );
+
+  /* F5c 清空按钮清空整个对比集 */
+  await page.locator('article').nth(0).locator('button[aria-label*="对比集"]').click();
+  await page.locator('article').nth(1).locator('button[aria-label*="对比集"]').click();
+  await page.waitForTimeout(400);
+  const trayTwo = await page.evaluate(() => {
+    const tray = document.querySelector('.fixed.inset-x-0.bottom-0');
+    return tray ? tray.querySelectorAll('button[aria-label^="从对比集移除"]').length : 0;
+  });
+  await page.locator('.fixed.inset-x-0.bottom-0 button', { hasText: '清空' }).click();
+  await page.waitForTimeout(400);
+  const trayCleared = await page.evaluate(() => !!document.querySelector('.fixed.inset-x-0.bottom-0'));
+  check(
+    'F5c 清空按钮清空对比集',
+    trayTwo === 2 && trayCleared === false,
+    `清空前 chip=${trayTwo} 清空后 tray 存在=${trayCleared}`,
+  );
+
+  /* F5d 对比集上限 3：第 4 款被拒并给出可见 role=status 提示 */
+  for (const i of [0, 1, 2]) {
+    await page.locator('article').nth(i).locator('button[aria-label*="对比集"]').click();
+    await page.waitForTimeout(200);
+  }
+  await page.locator('article').nth(3).locator('button[aria-label*="对比集"]').click();
+  await page.waitForTimeout(350);
+  const limit = await page.evaluate(() => {
+    const tray = document.querySelector('.fixed.inset-x-0.bottom-0');
+    const notice = document.querySelector('div[role=status]');
+    return {
+      chips: tray ? tray.querySelectorAll('button[aria-label^="从对比集移除"]').length : 0,
+      notice: notice ? notice.textContent.trim() : null,
+      visible: notice ? notice.getClientRects().length > 0 : false,
+    };
+  });
+  check(
+    'F5d 第 4 款被拒并给出可见 role=status 提示',
+    limit.chips === 3 && limit.visible && (limit.notice || '').includes('最多同时对比 3 款风格'),
+    JSON.stringify(limit),
+  );
+
+  /* F5e 提示自动消失且不残留 DOM 节点 */
+  await page.waitForTimeout(2800);
+  const noticeGone = await page.evaluate(() => document.querySelector('div[role=status]') === null);
+  check('F5e 上限提示自动消失且不残留 DOM', noticeGone, `残留=${!noticeGone}`);
+
+  /* F5f 详情弹窗内也有对比按钮；详情与对比同屏仅一个 dialog */
+  await page.locator('article').nth(0).locator('button[aria-label*="详情"]').click();
+  await page.waitForTimeout(500);
+  const detailStack = await page.evaluate(() => {
+    const dlgs = document.querySelectorAll('[role=dialog]');
+    const d = dlgs[0];
+    return {
+      count: dlgs.length,
+      label: d && d.getAttribute('aria-label'),
+      hasCompareBtn:
+        !!d && Array.from(d.querySelectorAll('button')).some((b) => (b.getAttribute('aria-label') || '').includes('对比集')),
+    };
+  });
+  check(
+    'F5f 详情含对比按钮且同屏仅一个 dialog',
+    detailStack.count === 1 && detailStack.hasCompareBtn && (detailStack.label || '').includes('详情'),
+    JSON.stringify(detailStack),
+  );
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(400);
+
+  /* F5g / F5h / F5i 对比视图：模态语义 + 并排 3 份 Preview + 7 段横向对照 */
+  await page.locator('.fixed.inset-x-0.bottom-0 button', { hasText: '开始对比' }).click();
+  await page.waitForTimeout(600);
+  const compareView = await page.evaluate(() => {
+    const dlgs = document.querySelectorAll('[role=dialog]');
+    const d = dlgs[0];
+    const text = d ? d.textContent : '';
+    const titles = ['角色定位', '设计理念', '字体方案', 'HSL 色板', '间距与圆角', '组件规则', '反模式禁令'];
+    return {
+      count: dlgs.length,
+      label: d && d.getAttribute('aria-label'),
+      modal: d && d.getAttribute('aria-modal'),
+      previews: d ? d.querySelectorAll('div[aria-hidden=true]').length : 0,
+      rows: d ? d.querySelectorAll('div.uppercase.text-brand').length : 0,
+      present: titles.filter((t) => text.includes(t)),
+    };
+  });
+  check(
+    'F5g 对比视图 role=dialog + aria-modal 且同屏仅一个 dialog',
+    compareView.count === 1 && compareView.label === '风格对比' && compareView.modal === 'true',
+    JSON.stringify(compareView),
+  );
+  check('F5h 对比视图并排渲染 3 份 Preview', compareView.previews === 3, `Preview 数=${compareView.previews}`);
+  check(
+    'F5i 段落横向对照 7 段全部呈现',
+    compareView.rows === 7 && compareView.present.length === 7,
+    `行数=${compareView.rows} 命中标题=${JSON.stringify(compareView.present)}`,
+  );
+
+  /* F5j 对比弹窗焦点陷阱 + Esc 关闭 */
+  const cmpInitFocus = await page.evaluate(
+    () => !!document.querySelector('[role=dialog]')?.contains(document.activeElement),
+  );
+  let cmpEscaped = false;
+  for (let i = 0; i < 25; i += 1) {
+    await page.keyboard.press('Tab');
+    const inside = await page.evaluate(
+      () => !!document.querySelector('[role=dialog]')?.contains(document.activeElement),
+    );
+    if (!inside) {
+      cmpEscaped = true;
+      break;
+    }
+  }
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(450);
+  const afterCmpEsc = await page.evaluate(() => ({
+    dialogs: document.querySelectorAll('[role=dialog]').length,
+    tray: !!document.querySelector('.fixed.inset-x-0.bottom-0'),
+  }));
+  check(
+    'F5j 对比弹窗焦点陷阱生效 + Esc 关闭',
+    cmpInitFocus && !cmpEscaped && afterCmpEsc.dialogs === 0,
+    `初始在内=${cmpInitFocus} 逃逸=${cmpEscaped} 关闭后 dialog=${afterCmpEsc.dialogs}`,
+  );
+  check('F5k 关闭对比视图后对比集保留', afterCmpEsc.tray === true, JSON.stringify(afterCmpEsc));
+
+  /* ======================= F9 DESIGN.md 导出 ======================= */
+
+  await resetApp();
+  await installDownloadSpy();
+
+  /* F9a 详情「导出 DESIGN.md」：文件名 + 六个章节 */
+  await page.locator('article').nth(0).locator('button[aria-label*="详情"]').click();
+  await page.waitForTimeout(500);
+  const paletteFromDom = await page.evaluate(() => {
+    const d = document.querySelector('[role=dialog]');
+    const map = {};
+    d.querySelectorAll('div[title]').forEach((el) => {
+      const nameEl = el.parentElement && el.parentElement.querySelector('.text-xs');
+      if (nameEl) map[nameEl.textContent.trim()] = el.getAttribute('title');
+    });
+    return map;
+  });
+  await page.getByRole('button', { name: '导出 DESIGN.md', exact: true }).click();
+  await page.waitForTimeout(400);
+  const design = await page.evaluate(async () => {
+    const text = window.__blob ? await window.__blob.text() : '';
+    return { names: window.__dl, text };
+  });
+  const designHeads = [
+    '## Overview',
+    '## Color Palette',
+    '## Typography',
+    '## Shape & Depth',
+    '## Components',
+    "## Do's & Don'ts",
+  ];
+  check(
+    'F9a 详情导出 DESIGN.md（文件名 + 六个章节）',
+    design.names.length === 1 && design.names[0] === 'DESIGN.md' && designHeads.every((h) => design.text.includes(h)),
+    `names=${JSON.stringify(design.names)} 命中章节=${designHeads.filter((h) => design.text.includes(h)).length}/6`,
+  );
+
+  /* F9b Color Palette 8 行 Token 表，且值与 preview.palette 一致 */
+  const paletteRows = {};
+  for (const line of design.text.split('\n')) {
+    const m = /^\|\s*([a-z][a-z-]*)\s*\|\s*([^|]+?)\s*\|/.exec(line);
+    if (m) paletteRows[m[1]] = m[2].trim();
+  }
+  const tokenOrder = ['background', 'surface', 'text', 'text-muted', 'accent', 'accent-text', 'border', 'shadow'];
+  const paletteMatched =
+    paletteRows.background === paletteFromDom['背景'] &&
+    paletteRows.surface === paletteFromDom['表面'] &&
+    paletteRows.accent === paletteFromDom['强调'] &&
+    paletteRows.text === paletteFromDom['文字'] &&
+    paletteRows['text-muted'] === paletteFromDom['次级文字'] &&
+    paletteRows.border === paletteFromDom['边框'];
+  check(
+    'F9b Color Palette 8 行 Token 表且值与 preview.palette 一致',
+    Object.keys(paletteRows).length === 8 && tokenOrder.every((t) => t in paletteRows) && paletteMatched,
+    `rows=${JSON.stringify(paletteRows)} DOM色板=${JSON.stringify(paletteFromDom)}`,
+  );
+
+  /* F9c 工具栏「导出 DESIGN.md 合集」 */
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(400);
+  await page.evaluate(() => {
+    window.__dl = [];
+    window.__blob = null;
+  });
+  await page.getByRole('button', { name: /导出 DESIGN\.md 合集/ }).click();
+  await page.waitForTimeout(450);
+  const designBundle = await page.evaluate(async () => {
+    const text = window.__blob ? await window.__blob.text() : '';
+    return {
+      name: window.__dl[window.__dl.length - 1],
+      sections: (text.match(/^## \d+\./gm) || []).length,
+      hasPalette: text.includes('## Color Palette'),
+      hasToc: text.includes('## 目录'),
+    };
+  });
+  check(
+    'F9c DESIGN.md 合集导出（25 篇 + 目录 + 文件名）',
+    /^design-md-collection-\d{8}\.md$/.test(designBundle.name || '') &&
+      designBundle.sections === 25 &&
+      designBundle.hasPalette &&
+      designBundle.hasToc,
+    JSON.stringify(designBundle),
+  );
 
   const realErrors = errors.filter((e) => !e.includes('favicon'));
   check('REG3 无控制台错误', realErrors.length === 0, JSON.stringify(realErrors));

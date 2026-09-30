@@ -2,7 +2,13 @@ import { useEffect, useMemo } from 'react';
 import type { StyleItem, StylePalette } from '../types';
 import { useCopy } from '../hooks/useCopy';
 import { useFocusTrap } from '../hooks/useFocusTrap';
-import { buildSingleMarkdown, downloadText, singleFilename } from '../utils/export';
+import {
+  buildDesignMd,
+  buildSingleMarkdown,
+  designMdFilename,
+  downloadText,
+  singleFilename,
+} from '../utils/export';
 import { buildShareLink } from '../utils/viewState';
 
 interface PromptDetailProps {
@@ -10,6 +16,14 @@ interface PromptDetailProps {
   onClose: () => void;
   /** 打开定制抽屉 */
   onCustomize: (item: StyleItem) => void;
+  /** 是否已收藏 */
+  isFavorite: boolean;
+  /** 切换收藏态 */
+  onToggleFavorite: (id: string) => void;
+  /** 是否已在对比集 */
+  inCompare: boolean;
+  /** 加入 / 移出对比集 */
+  onToggleCompare: (item: StyleItem) => void;
 }
 
 interface PaletteSwatch {
@@ -66,8 +80,16 @@ function renderPromptBody(prompt: string): JSX.Element[] {
   return nodes;
 }
 
-/** 提示词详情弹窗：完整正文 + 色板可视化 + 复制 / 分享 / 下载 / 定制 */
-export default function PromptDetail({ item, onClose, onCustomize }: PromptDetailProps): JSX.Element {
+/** 提示词详情弹窗：完整正文 + 色板可视化 + 复制 / 分享 / 下载 / 定制 / 收藏 / 对比 / DESIGN.md 导出 */
+export default function PromptDetail({
+  item,
+  onClose,
+  onCustomize,
+  isFavorite,
+  onToggleFavorite,
+  inCompare,
+  onToggleCompare,
+}: PromptDetailProps): JSX.Element {
   const panelRef = useFocusTrap<HTMLDivElement>();
   const { copied, copy } = useCopy();
   const { copied: linkCopied, copy: copyLink } = useCopy();
@@ -131,6 +153,39 @@ export default function PromptDetail({ item, onClose, onCustomize }: PromptDetai
               className="cursor-pointer rounded-lg border border-brand/40 px-3 py-2 text-sm text-brand transition-colors hover:bg-brand-soft"
             >
               定制
+            </button>
+            <button
+              type="button"
+              onClick={() => onToggleFavorite(item.id)}
+              aria-pressed={isFavorite}
+              aria-label={isFavorite ? `取消收藏「${item.nameZh}」` : `收藏「${item.nameZh}」`}
+              className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition-colors ${
+                isFavorite
+                  ? 'border-brand bg-brand-soft text-brand'
+                  : 'border-white/10 text-ink-muted hover:text-ink'
+              }`}
+            >
+              {isFavorite ? '★ 已收藏' : '☆ 收藏'}
+            </button>
+            <button
+              type="button"
+              onClick={() => onToggleCompare(item)}
+              aria-pressed={inCompare}
+              aria-label={inCompare ? `将「${item.nameZh}」移出对比集` : `将「${item.nameZh}」加入对比集`}
+              className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition-colors ${
+                inCompare
+                  ? 'border-brand bg-brand-soft text-brand'
+                  : 'border-white/10 text-ink-muted hover:text-ink'
+              }`}
+            >
+              {inCompare ? '已加入对比' : '对比'}
+            </button>
+            <button
+              type="button"
+              onClick={() => downloadText(designMdFilename(item), buildDesignMd(item))}
+              className="cursor-pointer rounded-lg border border-white/10 px-3 py-2 text-sm text-ink-muted transition-colors hover:text-ink"
+            >
+              导出 DESIGN.md
             </button>
             <button
               type="button"
