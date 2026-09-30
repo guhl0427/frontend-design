@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-surface text-ink antialiased;
+  min-height: 100vh;
+}
+
+/* 深色滚动条 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(240 5% 25%) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: hsl(240 5% 25%);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 提示词正文渲染（弹窗标题为 h2，# 段为 h3，## 段为 h4） */
+.prompt-body h3 {
+  @apply mb-4 mt-2 text-xl font-bold text-ink;
+}
+.prompt-body h4 {
+  @apply mb-2 mt-6 flex items-center gap-2 text-[13px] font-semibold tracking-[0.18em] text-brand uppercase;
+}
+.prompt-body h4::before {
+  content: '';
+  @apply inline-block h-3.5 w-1 rounded bg-brand;
+}
+.prompt-body p {
+  @apply mb-2 text-[14px] leading-7 text-ink-muted;
+}
+.prompt-body ul {
+  @apply my-1 list-none;
+}
+.prompt-body li {
+  @apply relative pl-5 text-[14px] leading-7 text-ink-muted;
+}
+.prompt-body li::before {
+  content: '▸';
+  @apply absolute left-0 text-brand;
+}

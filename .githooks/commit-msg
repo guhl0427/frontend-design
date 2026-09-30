@@ -1,0 +1,58 @@
+#!/bin/sh
+# ============================================================
+# commit-msg —— 校验提交信息是否符合《Git提交规范》
+# 启用方式：git config core.hooksPath .githooks
+# 临时跳过：git commit --no-verify
+# 由 git 自动调用，参数 1 = .git/COMMIT_EDITMSG 的路径
+# ============================================================
+
+msg_file="$1"
+[ -f "$msg_file" ] || exit 0
+
+TYPES='feat|fix|style|a11y|perf|refactor|docs|chore|build|ci|test|revert'
+RE="^($TYPES)(\([a-z0-9][a-z0-9./_-]*\))?!?: .+"
+
+# 取首个「非注释、非空」行作为标题行
+subject=$(grep -v '^#' "$msg_file" | sed -e 's/[[:space:]]*$//' | grep -v '^[[:space:]]*$' | head -n 1)
+
+# 空提交信息由 git 自身拦截
+[ -z "$subject" ] && exit 0
+
+# 放行 git 自动生成的提交信息，以及 rebase 的 fixup/squash
+case "$subject" in
+  Merge\ *|Revert\ *|fixup!*|squash!*) exit 0 ;;
+esac
+
+fail() {
+  echo "" >&2
+  echo "  ✖ 提交信息不符合《Git提交规范》：$1" >&2
+  echo "" >&2
+  echo "    你的标题行：$subject" >&2
+  echo "    正确格式  ：<type>(<scope>): <简要描述>" >&2
+  echo "    正确示例  ：feat(styles): 新增像素复古风格" >&2
+  echo "    可用类型  ：feat fix style a11y perf refactor docs chore build ci test revert" >&2
+  echo "    完整说明  ：docs/Git提交规范.md" >&2
+  echo "    临时跳过  ：git commit --no-verify" >&2
+  echo "" >&2
+  exit 1
+}
+
+printf '%s' "$subject" | grep -Eq "$RE" || fail "标题行格式错误（缺少类型，或冒号后缺少空格）"
+
+# ---------- 以下为「软提示」，只提醒不拦截 ----------
+len=$(printf '%s' "$subject" | wc -m | tr -d ' ')
+[ "$len" -gt 72 ] 2>/dev/null && \
+  echo "  ⚠ 提示：标题行约 $len 字，建议控制在 72 字以内" >&2
+
+case "$subject" in
+  *。) echo "  ⚠ 提示：标题行结尾不要加句号「。」" >&2 ;;
+  *.)  echo "  ⚠ 提示：标题行结尾不要加句号「.」" >&2 ;;
+esac
+
+line2=$(sed -n '2p' "$msg_file")
+case "$line2" in
+  ''|'#'*) : ;;
+  *) echo "  ⚠ 提示：标题行与正文之间应保留一个空行" >&2 ;;
+esac
+
+exit 0

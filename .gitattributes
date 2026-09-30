@@ -1,0 +1,52 @@
+# ============================================================
+# .gitattributes —— 统一换行符与文件类型识别
+# ============================================================
+
+# 默认：文本文件在仓库中统一存 LF，检出时也写 LF（跨 Win/mac/CI 行为一致）
+* text=auto eol=lf
+
+# ---------- 明确按文本处理 ----------
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.js   text eol=lf
+*.cjs  text eol=lf
+*.mjs  text eol=lf
+*.jsx  text eol=lf
+*.json text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+*.svg  text eol=lf
+*.md   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# Shell 脚本必须 LF，否则 Git Bash / CI 下会报错
+*.sh   text eol=lf
+
+# Windows 脚本保持 CRLF，否则 cmd 解析异常
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+
+# ---------- 明确按二进制处理（禁止换行符转换） ----------
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.avif binary
+*.woff  binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.eot  binary
+*.mp4  binary
+*.webm binary
+*.zip  binary
+*.pdf  binary
+
+# ---------- 统计 / Diff 优化 ----------
+package-lock.json  -diff linguist-generated=true
+*.tsbuildinfo      -diff linguist-generated=true
+*.snap.yaml        -diff linguist-generated=true

@@ -1,0 +1,67 @@
+# ============================================================
+# .gitignore —— style-gallery
+# 仓库根目录即本文件所在目录（style-gallery/）
+# 原则：只忽略「可再生成的产物」与「本机/临时垃圾」，源码与文档一律入库
+# ============================================================
+
+# ---------- 依赖 ----------
+node_modules/
+.pnpm-store/
+.yarn/cache/
+.yarn/install-state.gz
+jspm_packages/
+
+# ---------- 构建产物 ----------
+dist/
+dist-ssr/
+build/
+out/
+*.tsbuildinfo
+
+# ---------- 日志与临时文件 ----------
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.preview.log
+*.tmp
+*.temp
+*.bak
+*~
+
+# ---------- 环境变量（本机配置不入库） ----------
+.env
+.env.local
+.env.*.local
+
+# ---------- 编辑器 / 操作系统 ----------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.iml
+.fleet/
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# ---------- 浏览器自动化 / QA 临时产物 ----------
+.playwright-cli/
+**/.playwright-cli/
+qa-snap*.yaml
+**/qa-snap*.yaml
+scripts/.qa-contrast.txt
+
+# ---------- 一次性 QA 脚本（保留 npm run verify:* 实际依赖的两个脚本） ----------
+# 保留：scripts/verify-styles.mjs、scripts/verify-ui.cjs（package.json 引用）
+scripts/qa-*.sh
+scripts/qa-validate.mjs
+scripts/qa-contrast2.cjs
+
+# ---------- Agent 本地数据（含本机绝对路径与过程性笔记，不入库） ----------
+.workbuddy/
