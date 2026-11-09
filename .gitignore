@@ -57,6 +57,9 @@ qa-snap*.yaml
 **/qa-snap*.yaml
 scripts/.qa-contrast.txt
 
+# ---------- 设计过程目录（截图、评审证据、临时脚本，均为本机过程产物） ----------
+.oil-ui/
+
 # ---------- 一次性 QA 脚本（保留 npm run verify:* 实际依赖的两个脚本） ----------
 # 保留：scripts/verify-styles.mjs、scripts/verify-ui.cjs（package.json 引用）
 scripts/qa-*.sh
