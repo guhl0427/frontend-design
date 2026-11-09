@@ -43,6 +43,10 @@ function extractSwatches(p: StylePalette): PaletteSwatch[] {
   ];
 }
 
+/** 弹窗内次级动作的统一写法：无边框文字按钮，靠明度而非描边区分层级 */
+const detailActionClass =
+  'cursor-pointer px-1.5 py-1 text-[12.5px] text-ink-faint transition-colors hover:text-ink';
+
 /** 渲染提示词正文：# → h3，## → h4，连续的 - 行归组为 ul/li，空行跳过（间距由 CSS 承担） */
 function renderPromptBody(prompt: string): JSX.Element[] {
   const nodes: JSX.Element[] = [];
@@ -125,33 +129,30 @@ export default function PromptDetail({
       <div
         ref={panelRef}
         tabIndex={-1}
-        className="flex max-h-[86vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-surface-raised outline-none"
+        className="flex max-h-[86vh] w-full max-w-[660px] flex-col overflow-hidden border border-line-strong bg-surface-raised outline-none"
         onClick={(event) => event.stopPropagation()}
       >
         {/* 头部 */}
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/5 p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-xl font-bold text-ink">{item.nameZh}</h2>
-              <span className="rounded-full bg-brand-soft px-2.5 py-1 text-xs text-brand">{item.category}</span>
+            <div className="flex flex-wrap items-baseline gap-3">
+              <h2 className="text-[21px] font-semibold tracking-[-0.015em] text-ink">{item.nameZh}</h2>
+              <span className="font-mono text-[10.5px] tracking-[0.12em] text-ink-faint">{item.category}</span>
             </div>
-            <p className="mt-1 font-mono text-sm text-ink-faint">{item.nameEn}</p>
+            <p className="mt-0.5 font-mono text-[11px] text-ink-faint">{item.nameEn}</p>
           </div>
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {/* 八个动作里只有「复制提示词」是实心块，其余压成同一级的文字按钮 */}
+          <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-2">
             <button
               type="button"
               onClick={() => void copy(item.prompt)}
-              className={`cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                copied ? 'bg-brand text-surface' : 'bg-brand/90 text-surface hover:bg-brand'
+              className={`cursor-pointer px-3 py-1.5 text-[12.5px] font-medium transition-colors ${
+                copied ? 'bg-brand text-surface' : 'bg-ink text-surface hover:bg-brand'
               }`}
             >
               {copied ? '已复制 ✓' : '复制提示词'}
             </button>
-            <button
-              type="button"
-              onClick={() => onCustomize(item)}
-              className="cursor-pointer rounded-lg border border-brand/40 px-3 py-2 text-sm text-brand transition-colors hover:bg-brand-soft"
-            >
+            <button type="button" onClick={() => onCustomize(item)} className={detailActionClass}>
               定制
             </button>
             <button
@@ -159,11 +160,7 @@ export default function PromptDetail({
               onClick={() => onToggleFavorite(item.id)}
               aria-pressed={isFavorite}
               aria-label={isFavorite ? `取消收藏「${item.nameZh}」` : `收藏「${item.nameZh}」`}
-              className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition-colors ${
-                isFavorite
-                  ? 'border-brand bg-brand-soft text-brand'
-                  : 'border-white/10 text-ink-muted hover:text-ink'
-              }`}
+              className={`cursor-pointer py-1 text-[12.5px] transition-colors ${isFavorite ? 'text-brand' : 'text-ink-faint hover:text-ink'}`}
             >
               {isFavorite ? '★ 已收藏' : '☆ 收藏'}
             </button>
@@ -172,39 +169,31 @@ export default function PromptDetail({
               onClick={() => onToggleCompare(item)}
               aria-pressed={inCompare}
               aria-label={inCompare ? `将「${item.nameZh}」移出对比集` : `将「${item.nameZh}」加入对比集`}
-              className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition-colors ${
-                inCompare
-                  ? 'border-brand bg-brand-soft text-brand'
-                  : 'border-white/10 text-ink-muted hover:text-ink'
-              }`}
+              className={`cursor-pointer py-1 text-[12.5px] transition-colors ${inCompare ? 'text-brand' : 'text-ink-faint hover:text-ink'}`}
             >
               {inCompare ? '已加入对比' : '对比'}
             </button>
             <button
               type="button"
               onClick={() => downloadText(designMdFilename(item), buildDesignMd(item))}
-              className="cursor-pointer rounded-lg border border-white/10 px-3 py-2 text-sm text-ink-muted transition-colors hover:text-ink"
+              className={detailActionClass}
             >
               导出 DESIGN.md
             </button>
-            <button
-              type="button"
-              onClick={() => void copyLink(buildShareLink(item.id))}
-              className="cursor-pointer rounded-lg border border-white/10 px-3 py-2 text-sm text-ink-muted transition-colors hover:text-ink"
-            >
+            <button type="button" onClick={() => void copyLink(buildShareLink(item.id))} className={detailActionClass}>
               {linkCopied ? '链接已复制 ✓' : '分享'}
             </button>
             <button
               type="button"
               onClick={() => downloadText(singleFilename(item), buildSingleMarkdown(item))}
-              className="cursor-pointer rounded-lg border border-white/10 px-3 py-2 text-sm text-ink-muted transition-colors hover:text-ink"
+              className={detailActionClass}
             >
               下载
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="cursor-pointer rounded-lg border border-white/10 px-3 py-2 text-sm text-ink-muted transition-colors hover:text-ink"
+              className="cursor-pointer px-1.5 py-1 text-[13px] leading-none text-ink-faint transition-colors hover:text-ink"
               aria-label="关闭详情"
             >
               ✕
@@ -213,48 +202,52 @@ export default function PromptDetail({
         </div>
 
         {/* 内容 */}
-        <div className="overflow-y-auto p-5 sm:p-6">
+        <div className="overflow-y-auto px-5 py-5 sm:px-6">
           {/* 色板可视化 */}
-          <section className="mb-6">
-            <h3 className="mb-3 text-xs font-semibold tracking-[0.18em] text-ink-faint uppercase">预览色板</h3>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+          <section className="mb-5">
+            <h3 className="mb-3 font-mono text-[10.5px] tracking-[0.16em] text-ink-faint">预览色板</h3>
+            {/*
+              规格列表而非色块矩阵：色值是这一屏的主要数据，必须完整可读；
+              深色色块在深色底上没有边界，靠 1px 边框和并排的名称把它界定出来。
+            */}
+            <div className="divide-y divide-line border border-line">
               {swatches.map((swatch) => (
-                <div key={swatch.name} className="overflow-hidden rounded-lg border border-white/5">
-                  {/* 棋盘格打底：半透明色值（玻璃拟态等风格）才能被正确解读 */}
+                <div key={swatch.name} className="flex items-center gap-3 px-3 py-2" data-swatch={swatch.name}>
+                  {/*
+                    棋盘格打底、真实色值覆盖其上：
+                    半透明色值（玻璃拟态等风格）才能被正确解读，
+                    不透明色值则完整遮住棋盘格，呈现它本来的颜色。
+                  */}
                   <div
-                    className="h-10 w-full"
+                    className="h-7 w-7 shrink-0 border border-line-strong"
                     style={{
-                      backgroundColor: swatch.value,
                       backgroundImage:
                         'repeating-conic-gradient(hsl(0 0% 62%) 0% 25%, hsl(0 0% 42%) 0% 50%)',
-                      backgroundSize: '10px 10px',
+                      backgroundSize: '8px 8px',
                     }}
-                  />
-                  <div className="px-2 py-1.5">
-                    <div className="text-xs text-ink">{swatch.name}</div>
-                    <div className="truncate font-mono text-[10px] text-ink-faint" title={swatch.value}>
-                      {swatch.value}
-                    </div>
+                  >
+                    <div className="h-full w-full" style={{ backgroundColor: swatch.value }} />
                   </div>
+                  <span className="w-14 shrink-0 text-[12px] text-ink">{swatch.name}</span>
+                  <span className="truncate font-mono text-[11px] text-ink-faint" title={swatch.value}>
+                    {swatch.value}
+                  </span>
                 </div>
               ))}
             </div>
           </section>
 
           {/* 字体信息 */}
-          <section className="mb-6">
-            <h3 className="mb-3 text-xs font-semibold tracking-[0.18em] text-ink-faint uppercase">预览字体</h3>
+          <section className="mb-5">
+            <h3 className="mb-3 font-mono text-[10.5px] tracking-[0.16em] text-ink-faint">预览字体</h3>
             <div className="flex flex-wrap gap-2">
               <span
-                className="rounded-lg border border-white/10 px-3 py-1.5 text-sm text-ink"
+                className="border border-line px-3 py-1.5 text-[13px] text-ink"
                 style={{ fontFamily: item.preview.headingFont }}
               >
                 标题：{item.preview.headingFont.replace(/"/g, '').split(',')[0]}
               </span>
-              <span
-                className="rounded-lg border border-white/10 px-3 py-1.5 text-sm text-ink"
-                style={{ fontFamily: item.preview.bodyFont }}
-              >
+              <span className="border border-line px-3 py-1.5 text-[13px] text-ink" style={{ fontFamily: item.preview.bodyFont }}>
                 正文：{item.preview.bodyFont.replace(/"/g, '').split(',')[0]}
               </span>
             </div>
@@ -262,8 +255,8 @@ export default function PromptDetail({
 
           {/* 完整提示词 */}
           <section>
-            <h3 className="mb-3 text-xs font-semibold tracking-[0.18em] text-ink-faint uppercase">完整提示词</h3>
-            <div className="prompt-body rounded-xl border border-white/5 bg-surface p-5">
+            <h3 className="mb-3 font-mono text-[10.5px] tracking-[0.16em] text-ink-faint">完整提示词</h3>
+            <div className="prompt-body border border-line bg-surface p-5">
               {renderPromptBody(item.prompt)}
             </div>
           </section>

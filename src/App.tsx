@@ -161,44 +161,47 @@ export default function App(): JSX.Element {
     setComparing(true);
   };
 
+  /** 分类 tab：选中态只加一条 1px 琥珀下划线，不用色块填充 */
+  const tabClass = (isActive: boolean): string =>
+    `shrink-0 cursor-pointer border-b-2 px-3 pt-3.5 pb-2.5 text-[13px] whitespace-nowrap transition-colors ${
+      isActive ? 'border-brand text-ink' : 'border-transparent text-ink-muted hover:text-ink'
+    }`;
+
+  /** 工具行按钮：无边框、无底色，靠文字明度区分层级 */
+  const ghostBtnClass =
+    'cursor-pointer py-1 text-[13px] text-ink-faint transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-40';
+
   return (
     <div className="flex min-h-screen flex-col">
-      {/* 页头 */}
-      <header className="border-b border-white/5">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-                前端风格提示词画廊
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-ink-muted">
-                {STYLES.length} 种结构化前端风格提示词：设计理念 · 字体方案 · HSL 色板 · 间距圆角 · 组件规则 ·
-                反模式禁令。每张卡片用该风格自身规则实时渲染，点击查看完整提示词，一键复制即可投喂给你的 AI 编程助手。
-                支持深链分享、Markdown / DESIGN.md 导出、三档参数定制与多风格对比。
-              </p>
-            </div>
-            <div className="rounded-lg border border-white/5 bg-surface-raised px-4 py-2 text-sm text-ink-muted">
-              纯 CSS 预览 · 无截图 · 无版权负担
-            </div>
+      {/*
+        页头：压到两行以内，让第一排卡片完整落在首屏。
+        原先四行的产品功能说明段已下沉到页脚——它解释的是「这个页面是做什么的」，
+        属于首屏不需要的内容；画廊首屏该让作品先出现。
+      */}
+      <header className="border-b border-line">
+        <div className="mx-auto max-w-[1400px] px-4 pt-9 pb-5 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1.5">
+            <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-ink">前端风格提示词画廊</h1>
+            <p className="font-mono text-[11px] tracking-[0.14em] text-ink-faint">
+              {STYLES.length} 种风格 · 各含 7 段提示词 · 纯 CSS 渲染
+            </p>
           </div>
         </div>
       </header>
 
       {/* 筛选与搜索 */}
-      <div className="sticky top-0 z-40 border-b border-white/5 bg-surface/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap gap-2">
+      <div className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur">
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          {/* 小屏上分类放不下时会横向滚动，右边缘渐隐提示「后面还有」 */}
+          <div className="no-scrollbar -ml-3 -mb-px flex gap-x-0.5 overflow-x-auto max-sm:[mask-image:linear-gradient(to_right,#000_0%,#000_82%,transparent_100%)]">
             {/* 收藏 / 最近：本地数据筛选，与分类筛选互斥（同一时刻只有一个筛选生效） */}
             <button
               type="button"
               onClick={() => setActiveFilter(FAVORITES_FILTER)}
               aria-pressed={activeFilter === FAVORITES_FILTER}
+              aria-current={activeFilter === FAVORITES_FILTER ? 'true' : undefined}
               aria-label="筛选已收藏的风格"
-              className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
-                activeFilter === FAVORITES_FILTER
-                  ? 'border-brand bg-brand text-surface'
-                  : 'border-white/10 text-ink-muted hover:border-brand/40 hover:text-ink'
-              }`}
+              className={tabClass(activeFilter === FAVORITES_FILTER)}
             >
               ★ 收藏
             </button>
@@ -206,101 +209,93 @@ export default function App(): JSX.Element {
               type="button"
               onClick={() => setActiveFilter(RECENT_FILTER)}
               aria-pressed={activeFilter === RECENT_FILTER}
+              aria-current={activeFilter === RECENT_FILTER ? 'true' : undefined}
               aria-label="筛选最近浏览的风格"
-              className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
-                activeFilter === RECENT_FILTER
-                  ? 'border-brand bg-brand text-surface'
-                  : 'border-white/10 text-ink-muted hover:border-brand/40 hover:text-ink'
-              }`}
+              className={tabClass(activeFilter === RECENT_FILTER)}
             >
               ◷ 最近
             </button>
 
-            {CATEGORY_FILTERS.map((category) => {
-              const isActive = activeFilter === category;
-              return (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setActiveFilter(category)}
-                  className={`cursor-pointer rounded-full border px-3.5 py-1.5 text-sm transition-colors ${
-                    isActive
-                      ? 'border-brand bg-brand text-surface'
-                      : 'border-white/10 text-ink-muted hover:border-brand/40 hover:text-ink'
-                  }`}
-                >
-                  {category}
-                </button>
-              );
-            })}
+            {/* 本地数据与分类之间用一条细竖线分组 */}
+            <span aria-hidden="true" className="mx-2 my-auto h-3 w-px shrink-0 bg-line-strong" />
+
+            {CATEGORY_FILTERS.map((category) => (
+              <button
+                key={category}
+                type="button"
+                onClick={() => setActiveFilter(category)}
+                aria-current={activeFilter === category ? 'true' : undefined}
+                className={tabClass(activeFilter === category)}
+              >
+                {category}
+              </button>
+            ))}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative min-w-0 flex-1 sm:max-w-xs">
-              <span className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-ink-faint">⌕</span>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line py-2.5">
+            <div className="relative min-w-0 flex-1 sm:max-w-[20rem]">
+              <span className="pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 font-mono text-[13px] leading-none text-ink-faint">
+                /
+              </span>
               <input
                 type="search"
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
-                placeholder="搜索风格名称 / 关键词…"
-                className="w-full rounded-full border border-white/10 bg-surface-raised py-2 pr-4 pl-8 text-sm text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none"
+                placeholder="搜索风格名称或关键词"
+                className="w-full border-b border-line-strong bg-transparent py-1 pr-2 pl-4 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none"
               />
             </div>
-            <span className="text-xs whitespace-nowrap text-ink-faint">
+            <span className="font-mono text-[11px] tracking-[0.08em] whitespace-nowrap text-ink-faint">
               {visibleStyles.length} / {STYLES.length}
             </span>
-            {activeFilter === RECENT_FILTER && recent.length > 0 && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:ml-auto">
+              {activeFilter === RECENT_FILTER && recent.length > 0 && (
+                <button type="button" onClick={clearRecent} className={ghostBtnClass}>
+                  清空浏览记录
+                </button>
+              )}
+              <button type="button" onClick={() => void copyLink(window.location.href)} className={ghostBtnClass}>
+                {linkCopied ? '链接已复制 ✓' : '分享本页'}
+              </button>
               <button
                 type="button"
-                onClick={clearRecent}
-                className="cursor-pointer rounded-full border border-white/10 px-3.5 py-2 text-sm text-ink-muted transition-colors hover:border-brand/40 hover:text-ink"
+                onClick={handleExportBundle}
+                disabled={visibleStyles.length === 0}
+                className={ghostBtnClass}
               >
-                清空浏览记录
+                导出 {visibleStyles.length} 条 .md
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => void copyLink(window.location.href)}
-              className="cursor-pointer rounded-full border border-white/10 px-3.5 py-2 text-sm text-ink-muted transition-colors hover:border-brand/40 hover:text-ink"
-            >
-              {linkCopied ? '链接已复制 ✓' : '分享本页'}
-            </button>
-            <button
-              type="button"
-              onClick={handleExportBundle}
-              disabled={visibleStyles.length === 0}
-              className="cursor-pointer rounded-full border border-white/10 px-3.5 py-2 text-sm text-ink-muted transition-colors hover:border-brand/40 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              导出 {visibleStyles.length} 条 .md
-            </button>
-            <button
-              type="button"
-              onClick={handleExportDesignBundle}
-              disabled={visibleStyles.length === 0}
-              className="cursor-pointer rounded-full border border-white/10 px-3.5 py-2 text-sm text-ink-muted transition-colors hover:border-brand/40 hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              导出 DESIGN.md 合集
-            </button>
+              <button
+                type="button"
+                onClick={handleExportDesignBundle}
+                disabled={visibleStyles.length === 0}
+                className={ghostBtnClass}
+              >
+                导出 DESIGN.md 合集
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* 卡片网格（flex-1 + min-h-screen：保证任意视口下 maxScrollY ≥ 317px > header 偏移 181px，sticky 筛选栏恒钉顶） */}
       <main
-        className={`mx-auto min-h-screen w-full max-w-7xl flex-1 px-4 pt-8 sm:px-6 lg:px-8 ${
+        className={`mx-auto min-h-screen w-full max-w-[1400px] flex-1 px-4 pt-8 sm:px-6 lg:px-8 ${
           compareItems.length > 0 ? 'pb-32' : 'pb-8'
         }`}
       >
         {visibleStyles.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-white/10 py-24 text-center">
-            <p className="text-ink-muted">{emptyMessageFor(activeFilter, favorites, recent)}</p>
+          <div className="border border-dashed border-line py-24 text-center">
+            <p className="text-[13px] text-ink-muted">{emptyMessageFor(activeFilter, favorites, recent)}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {visibleStyles.map((item) => (
               <StyleCard
                 key={item.id}
                 item={item}
+                /* 编号取自数据源位置而非列表位置，筛选/收藏排序后仍然稳定 */
+                index={STYLES.indexOf(item) + 1}
                 onOpen={handleOpen}
                 onCustomize={handleCustomize}
                 isFavorite={isFavorite(item.id)}
@@ -313,11 +308,18 @@ export default function App(): JSX.Element {
         )}
       </main>
 
-      {/* 页脚 */}
-      <footer className="border-t border-white/5">
-        <div className="mx-auto max-w-7xl px-4 py-6 text-center text-xs text-ink-faint sm:px-6 lg:px-8">
-          提示词正文可直接粘贴至 Claude / Cursor / v0 / bolt 等工具 · 字体来自 Google Fonts ·
-          链接参数 <code className="font-mono">?cat= 分类 &amp; q= 关键词 &amp; style= 风格</code> 可直接分享
+      {/* 页脚：承接从页头移出的产品说明，行宽限制在 64ch 以内 */}
+      <footer className="border-t border-line">
+        <div className="mx-auto max-w-[1400px] px-4 py-7 sm:px-6 lg:px-8">
+          <p className="max-w-[64ch] text-[13px] leading-[1.75] text-ink-faint">
+            每张卡片的预览由该风格自身的规则实时渲染，纯 CSS 画成，不含截图与位图。
+            提示词正文可直接粘贴至 Claude / Cursor / v0 / bolt 等工具；字体来自 Google Fonts。
+          </p>
+          <p className="mt-2 max-w-[64ch] text-[13px] leading-[1.75] text-ink-faint">
+            支持深链分享、Markdown 与 DESIGN.md 导出、三档参数定制、多风格对比。链接参数
+            <code className="mx-1 font-mono text-ink-muted">?cat= 分类 &amp; q= 关键词 &amp; style= 风格</code>
+            可直接分享。
+          </p>
         </div>
       </footer>
 
@@ -355,7 +357,7 @@ export default function App(): JSX.Element {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 rounded-full border border-white/10 bg-surface-raised px-4 py-2 text-sm text-ink"
+          className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 border border-line-strong bg-surface-raised px-3.5 py-2 text-[12.5px] text-ink"
         >
           {notice}
         </div>

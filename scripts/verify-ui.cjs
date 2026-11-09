@@ -65,8 +65,8 @@ async function main() {
   await page.waitForTimeout(600);
   const deep = await page.evaluate(() => {
     const dlg = document.querySelector('[role=dialog]');
-    const active = Array.from(document.querySelectorAll('.sticky button'))
-      .filter((b) => b.className.includes('bg-brand'))
+    /* 当前 tab 用 aria-current 标记，不依赖具体配色类名 */
+    const active = Array.from(document.querySelectorAll('.sticky button[aria-current="true"]'))
       .map((b) => b.textContent.trim());
     return { dialog: !!dlg, label: dlg && dlg.getAttribute('aria-label'), active };
   });
@@ -575,7 +575,8 @@ async function main() {
       label: d && d.getAttribute('aria-label'),
       modal: d && d.getAttribute('aria-modal'),
       previews: d ? d.querySelectorAll('div[aria-hidden=true]').length : 0,
-      rows: d ? d.querySelectorAll('div.uppercase.text-brand').length : 0,
+      /* 用语义锚点计数，不绑 Tailwind 类名——改视觉时断言不该跟着断 */
+      rows: d ? d.querySelectorAll('[data-compare-row]').length : 0,
       present: titles.filter((t) => text.includes(t)),
     };
   });
@@ -630,9 +631,11 @@ async function main() {
   const paletteFromDom = await page.evaluate(() => {
     const d = document.querySelector('[role=dialog]');
     const map = {};
-    d.querySelectorAll('div[title]').forEach((el) => {
-      const nameEl = el.parentElement && el.parentElement.querySelector('.text-xs');
-      if (nameEl) map[nameEl.textContent.trim()] = el.getAttribute('title');
+    /* 色板格子上的 data-swatch 是稳定锚点，值取格子内 title 属性 */
+    d.querySelectorAll('[data-swatch]').forEach((el) => {
+      const name = el.getAttribute('data-swatch');
+      const valueEl = el.querySelector('[title]');
+      if (name && valueEl) map[name] = valueEl.getAttribute('title');
     });
     return map;
   });

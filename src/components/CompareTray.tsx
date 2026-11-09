@@ -17,22 +17,22 @@ export default function CompareTray({ items, onRemove, onClear, onStart }: Compa
   if (items.length === 0) return <></>;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-white/10 bg-surface-raised/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
-        <span className="text-xs font-semibold tracking-[0.18em] text-ink-faint uppercase">对比集</span>
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line-strong bg-surface-raised/95 backdrop-blur">
+      <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <span className="font-mono text-[10.5px] tracking-[0.16em] text-ink-faint">对比集</span>
 
         <div className="flex min-w-0 flex-1 flex-wrap gap-2">
           {items.map((item) => (
             <span
               key={item.id}
-              className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 py-1 pr-1.5 pl-3 text-xs text-ink"
+              className="flex items-center gap-1.5 border border-line bg-white/[0.03] py-1 pr-1.5 pl-2.5 text-[12.5px] text-ink"
             >
               {item.nameZh}
               <button
                 type="button"
                 onClick={() => onRemove(item.id)}
                 aria-label={`从对比集移除「${item.nameZh}」`}
-                className="cursor-pointer rounded-full px-1.5 leading-none text-ink-faint transition-colors hover:text-ink"
+                className="cursor-pointer px-1 leading-none text-ink-faint transition-colors hover:text-ink"
               >
                 ✕
               </button>
@@ -43,14 +43,14 @@ export default function CompareTray({ items, onRemove, onClear, onStart }: Compa
         <button
           type="button"
           onClick={onStart}
-          className="cursor-pointer rounded-full bg-brand px-4 py-2 text-sm font-medium text-surface transition-colors hover:bg-brand/90"
+          className="cursor-pointer bg-ink px-4 py-1.5 text-[13px] font-medium text-surface transition-colors hover:bg-brand"
         >
           开始对比（{items.length}）
         </button>
         <button
           type="button"
           onClick={onClear}
-          className="cursor-pointer rounded-full border border-white/10 px-3.5 py-2 text-sm text-ink-muted transition-colors hover:border-brand/40 hover:text-ink"
+          className="cursor-pointer px-2 py-1.5 text-[13px] text-ink-faint transition-colors hover:text-ink"
         >
           清空
         </button>

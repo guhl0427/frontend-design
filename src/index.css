@@ -11,44 +11,69 @@ body {
   min-height: 100vh;
 }
 
-/* 深色滚动条 */
+::selection {
+  background: hsl(38 76% 62% / 0.28);
+  color: hsl(40 12% 97%);
+}
+
+/* 细线滚动条（石墨）：颜色要够亮，否则滚动区被裁切时会被误读成渲染错误 */
 * {
   scrollbar-width: thin;
-  scrollbar-color: hsl(240 5% 25%) transparent;
+  scrollbar-color: hsl(40 6% 32%) transparent;
 }
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 *::-webkit-scrollbar-thumb {
-  background: hsl(240 5% 25%);
-  border-radius: 4px;
+  background: hsl(40 6% 32%);
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: hsl(40 6% 44%);
+  background-clip: content-box;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* 提示词正文渲染（弹窗标题为 h2，# 段为 h3，## 段为 h4） */
+/* 统一焦点环：1px 琥珀，不参与布局 */
+:focus-visible {
+  outline: 1px solid hsl(38 76% 62%);
+  outline-offset: 2px;
+}
+
+/* 分类 tab 的横向滚动槽不显示滚动条 */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/*
+  提示词正文渲染（弹窗标题为 h2，# 段为 h3，## 段为 h4）
+  段落标题用「上细线 + 等宽小字」代替原先的彩色单侧边条——
+  色条是模型默认做法，也给页面加了一块没有任务贡献的彩色面积。
+*/
 .prompt-body h3 {
-  @apply mb-4 mt-2 text-xl font-bold text-ink;
+  @apply mb-3 mt-2 text-[19px] font-semibold tracking-[-0.01em] text-ink;
 }
 .prompt-body h4 {
-  @apply mb-2 mt-6 flex items-center gap-2 text-[13px] font-semibold tracking-[0.18em] text-brand uppercase;
-}
-.prompt-body h4::before {
-  content: '';
-  @apply inline-block h-3.5 w-1 rounded bg-brand;
+  @apply mb-3 mt-8 border-t border-line pt-3.5 font-mono text-[11px] font-normal tracking-[0.2em] text-ink-faint;
 }
 .prompt-body p {
-  @apply mb-2 text-[14px] leading-7 text-ink-muted;
+  @apply mb-2.5 text-[14px] leading-[1.85] text-ink-muted;
 }
 .prompt-body ul {
   @apply my-1 list-none;
 }
 .prompt-body li {
-  @apply relative pl-5 text-[14px] leading-7 text-ink-muted;
+  @apply relative pl-5 text-[14px] leading-[1.85] text-ink-muted;
 }
 .prompt-body li::before {
-  content: '▸';
-  @apply absolute left-0 text-brand;
+  content: '—';
+  @apply absolute left-0 text-ink-faint;
 }
