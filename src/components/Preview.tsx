@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, JSX } from 'react';
 import type { ButtonVariant, CardVariant, PreviewConfig, StyleItem, StylePalette } from '../types';
 
 interface PreviewProps {
@@ -74,6 +74,37 @@ function primaryButtonStyle(variant: ButtonVariant, p: StylePalette, radius: str
         borderRadius: '0px',
         border: `2px solid ${p.shadowColor}`,
         boxShadow: `2px 2px 0 0 ${p.shadowColor}`,
+        letterSpacing: '0.04em',
+      };
+    /* 黏土：胶囊 + 内高光 + 底部内阴影，体现被捏出的厚度 */
+    case 'clay':
+      return {
+        ...base,
+        backgroundColor: p.accent,
+        color: p.accentText,
+        borderRadius: radius,
+        border: 'none',
+        boxShadow: `0 6px 12px ${p.shadowColor}, inset 0 -3px 6px ${p.shadowColor}, inset 0 3px 6px rgba(255, 255, 255, 0.55)`,
+      };
+    /* 液态玻璃：实心主色 + 上缘镜面高光，不叠加背景模糊（控件层需保证可读） */
+    case 'liquid':
+      return {
+        ...base,
+        backgroundColor: p.accent,
+        color: p.accentText,
+        borderRadius: radius,
+        border: '1px solid rgba(255, 255, 255, 0.45)',
+        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 6px 14px rgba(20, 60, 140, 0.28)',
+      };
+    /* 孔版印刷：纯色块 + 无描边 + 第二色版错位硬影 */
+    case 'riso':
+      return {
+        ...base,
+        backgroundColor: p.accent,
+        color: p.accentText,
+        borderRadius: '0px',
+        border: 'none',
+        boxShadow: `3px 3px 0 ${p.shadowColor}`,
         letterSpacing: '0.04em',
       };
     default:
@@ -161,6 +192,34 @@ function miniCardStyle(variant: CardVariant, cfg: PreviewConfig): CSSProperties 
         border: `1px solid ${p.border}`,
         backdropFilter: 'blur(30px) saturate(120%)',
         boxShadow: cfg.shadow,
+      };
+    /* 黏土：外柔影 + 底部内阴影 + 顶部白色内高光，构成体积 */
+    case 'clay':
+      return {
+        ...base,
+        backgroundColor: p.surface,
+        borderRadius: cfg.radius,
+        border: 'none',
+        boxShadow: `7px 9px 16px ${p.shadowColor}, inset 0 -4px 8px ${p.shadowColor}, inset 0 4px 8px rgba(255, 255, 255, 0.9)`,
+      };
+    /* 液态玻璃：低模糊 + 强白细边 + 顶部内高光（折射而非磨砂） */
+    case 'liquid':
+      return {
+        ...base,
+        backgroundColor: p.surface,
+        borderRadius: cfg.radius,
+        border: `1px solid ${p.border}`,
+        backdropFilter: 'blur(2px) saturate(140%)',
+        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 8px 20px rgba(30, 45, 70, 0.12)',
+      };
+    /* 孔版印刷：墨线描边 + 第二色版错位硬影，模拟套印不准 */
+    case 'riso':
+      return {
+        ...base,
+        backgroundColor: p.surface,
+        borderRadius: '0px',
+        border: `2px solid ${p.border}`,
+        boxShadow: `3px 3px 0 ${p.shadowColor}`,
       };
     default:
       return { ...base, backgroundColor: p.surface, borderRadius: cfg.radius };

@@ -30,6 +30,8 @@ function loadPlaywrightCore() {
 const { chromium } = loadPlaywrightCore();
 
 const BASE = process.argv[2] || 'http://127.0.0.1:4173';
+/** 风格总数：合集导出的篇数断言以此为准，新增风格时必须同步 */
+const TOTAL_STYLES = 35;
 const CHROME_CANDIDATES = [
   path.join(process.env.LOCALAPPDATA || '', 'ms-playwright', 'chromium-1045', 'chrome-win', 'chrome.exe'),
   path.join(process.env.LOCALAPPDATA || '', 'ms-playwright', 'chromium-978106', 'chrome-win', 'chrome.exe'),
@@ -61,7 +63,7 @@ async function main() {
   );
 
   /* --------------------------- F1a 深链直达 + 分类 --------------------------- */
-  await page.goto(`${BASE}/?cat=%E8%89%BA%E6%9C%AF&style=bauhaus`, { waitUntil: 'networkidle' });
+  await page.goto(`${BASE}/?cat=art&style=bauhaus`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(600);
   const deep = await page.evaluate(() => {
     const dlg = document.querySelector('[role=dialog]');
@@ -75,6 +77,7 @@ async function main() {
     deep.dialog && deep.active.includes('艺术') && (deep.label || '').includes('包豪斯'),
     JSON.stringify(deep),
   );
+
 
   /* ------------------------------- S1 焦点陷阱 ------------------------------- */
   const initialFocusInside = await page.evaluate(
@@ -155,12 +158,26 @@ async function main() {
     `打开时入内=${openedByClick} 归还后焦点文本="${restored.focusText.trim()}"`,
   );
 
+  /* -------------------- F1d URL 参数只用英文 slug -------------------- */
+  /* Esc 关闭详情后 URL 应只剩 ?cat=art：分类必须是 ASCII slug，不得回退成中文分类名 */
+  const catParam = await page.evaluate(() => ({
+    cat: new URLSearchParams(location.search).get('cat'),
+    query: location.search,
+  }));
+  check(
+    'F1d 分类参数为英文 slug（URL 无中文、无百分号编码）',
+    catParam.cat === 'art' && !/%[0-9A-F]{2}/i.test(catParam.query),
+    JSON.stringify(catParam),
+  );
+
+
   /* ---------------------------- W3 预览 aria-hidden ---------------------------- */
   const aria = await page.evaluate(() => {
     const cards = Array.from(document.querySelectorAll('article'));
     return { cards: cards.length, hidden: cards.filter((c) => c.querySelector('button > div[aria-hidden=true]')).length };
   });
-  check('W3 所有卡片预览对读屏隐藏', aria.cards === aria.hidden && aria.cards === 3, JSON.stringify(aria));
+  /* 只断言「有卡片且全部隐藏」，不绑定具体数量：分类内风格数会随内容扩充变化 */
+  check('W3 所有卡片预览对读屏隐藏', aria.cards > 0 && aria.cards === aria.hidden, JSON.stringify(aria));
 
   /* ------------------------- F2b 导出当前筛选结果为合集 ------------------------- */
   await page.locator('.sticky button', { hasText: '全部' }).first().click();
@@ -176,8 +193,8 @@ async function main() {
     };
   });
   check(
-    'F2b 合集导出（25 篇 + 目录 + 文件名）',
-    bundle.sections === 25 && bundle.hasToc && /^style-prompts-collection-\d{8}\.md$/.test(bundle.name),
+    `F2b 合集导出（${TOTAL_STYLES} 篇 + 目录 + 文件名）`,
+    bundle.sections === TOTAL_STYLES && bundle.hasToc && /^style-prompts-collection-\d{8}\.md$/.test(bundle.name),
     JSON.stringify(bundle),
   );
 
@@ -281,8 +298,13 @@ async function main() {
     url: location.search,
   }));
   check(
-    'REG1 稀疏分类下 sticky 恒钉顶 + URL 同步',
-    sticky.top === 0 && sticky.scrollY > 0 && sticky.cards === 1 && sticky.url.includes('cat='),
+    'REG1 稀疏分类下 sticky 恒钉顶 + URL 同步（英文 slug）',
+    /* 「稀疏」以 ≤3 张为准，不锁死具体条数（分类内容会随风格扩充增长） */
+    sticky.top === 0 &&
+      sticky.scrollY > 0 &&
+      sticky.cards > 0 &&
+      sticky.cards <= 3 &&
+      sticky.url.includes('cat=chinese'),
     JSON.stringify(sticky),
   );
 
@@ -698,16 +720,30 @@ async function main() {
     };
   });
   check(
-    'F9c DESIGN.md 合集导出（25 篇 + 目录 + 文件名）',
+    `F9c DESIGN.md 合集导出（${TOTAL_STYLES} 篇 + 目录 + 文件名）`,
     /^design-md-collection-\d{8}\.md$/.test(designBundle.name || '') &&
-      designBundle.sections === 25 &&
+      designBundle.sections === TOTAL_STYLES &&
       designBundle.hasPalette &&
       designBundle.hasToc,
     JSON.stringify(designBundle),
   );
 
-  const realErrors = errors.filter((e) => !e.includes('favicon'));
-  check('REG3 无控制台错误', realErrors.length === 0, JSON.stringify(realErrors));
+  /* ---------------- F1e 旧中文分类链接兼容（读得懂 + 回写规范化） ---------------- */
+  await page.goto(`${BASE}/?cat=${encodeURIComponent('国风')}`, { waitUntil: 'networkidle' });
+  await page.waitForTimeout(500);
+  const legacy = await page.evaluate(() => ({
+    active: Array.from(document.querySelectorAll('.sticky button[aria-current="true"]')).map((b) =>
+      b.textContent.trim(),
+    ),
+    cat: new URLSearchParams(location.search).get('cat'),
+  }));
+  check(
+    'F1e 旧中文分类链接可读并规范化回写为 slug',
+    legacy.active.includes('国风') && legacy.cat === 'chinese',
+    JSON.stringify(legacy),
+  );
+
+  const realErrors = errors.filter((e) => !e.includes('favicon'));  check('REG3 无控制台错误', realErrors.length === 0, JSON.stringify(realErrors));
 
   await browser.close();
 

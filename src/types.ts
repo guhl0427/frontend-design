@@ -37,7 +37,10 @@ export type ButtonVariant =
   | 'glass'
   | 'gradient'
   | 'terminal'
-  | 'pixel';
+  | 'pixel'
+  | 'clay'
+  | 'liquid'
+  | 'riso';
 export type CardVariant =
   | 'flat'
   | 'hard'
@@ -46,7 +49,10 @@ export type CardVariant =
   | 'outline'
   | 'pixel'
   | 'sketch'
-  | 'acrylic';
+  | 'acrylic'
+  | 'clay'
+  | 'liquid'
+  | 'riso';
 
 /** 预览渲染配置：Preview 组件据此用该风格自身的规则渲染一个 mini hero */
 export interface PreviewConfig {

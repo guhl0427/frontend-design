@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import type { StyleItem } from '../types';
 import { useCopy } from '../hooks/useCopy';
 import Preview from './Preview';
@@ -44,7 +45,7 @@ export default function StyleCard({
       {/*
         样张：预览是唯一主角，四周留一圈卡纸边距把它托起来。
         外壳的标记（星标、编号）一律不叠在样张上——叠上去就变成贴纸，
-        而且 25 种底色下没有任何一种叠色能同时成立。
+        而且几十种样张底色下没有任何一种叠色能同时成立。
       */}
       <div className="p-2.5">
         <button

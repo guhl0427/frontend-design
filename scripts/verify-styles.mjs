@@ -29,8 +29,8 @@ const PREVIEW_KEYS = [
   'palette', 'headingFont', 'bodyFont', 'radius', 'borderWidth', 'shadow',
   'titleWeight', 'titleLetterSpacing', 'uppercaseTitle', 'buttonVariant', 'cardVariant',
 ];
-const BUTTON_VARIANTS = ['solid', 'outline', 'hard', 'glass', 'gradient', 'terminal', 'pixel'];
-const CARD_VARIANTS = ['flat', 'hard', 'glass', 'inset', 'outline', 'pixel', 'sketch', 'acrylic'];
+const BUTTON_VARIANTS = ['solid', 'outline', 'hard', 'glass', 'gradient', 'terminal', 'pixel', 'clay', 'liquid', 'riso'];
+const CARD_VARIANTS = ['flat', 'hard', 'glass', 'inset', 'outline', 'pixel', 'sketch', 'acrylic', 'clay', 'liquid', 'riso'];
 const SECTIONS = ['# 角色定位', '## 设计理念', '## 字体方案', '## HSL 色板', '## 间距与圆角', '## 组件规则', '## 反模式禁令'];
 
 // ---------- 1. 数据完整性 ----------

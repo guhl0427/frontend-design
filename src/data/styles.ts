@@ -1566,4 +1566,626 @@ export const STYLES: StyleItem[] = [
 - 禁止自创圆角与阴影值，必须从上述阶梯中取值
 - 禁用只有颜色区分状态的设计（需配图标或文案）；对比度不低于 4.5:1`,
   },
+  {
+    id: 'claymorphism',
+    nameZh: '黏土拟态',
+    nameEn: 'Claymorphism',
+    category: '柔和',
+    tags: ['黏土', '柔影', '胶囊', '体积感'],
+    summary: '大圆角与三层柔影捏出塑料黏土的厚度，层级靠体积而非描边。',
+    preview: {
+      palette: {
+        bg: 'hsl(30 40% 96%)',
+        surface: 'hsl(26 55% 90%)',
+        text: 'hsl(20 25% 16%)',
+        textMuted: 'hsl(20 14% 32%)',
+        accent: 'hsl(12 82% 56%)',
+        accentText: 'hsl(0 0% 100%)',
+        border: 'hsl(26 40% 84%)',
+        shadowColor: 'hsl(20 30% 62% / 0.55)',
+      },
+      headingFont: '"Fredoka", sans-serif',
+      bodyFont: '"Nunito", sans-serif',
+      radius: '26px',
+      borderWidth: '1px',
+      shadow:
+        '0 12px 22px hsl(20 30% 62% / 0.42), inset 0 -5px 10px hsl(20 35% 72% / 0.55), inset 0 5px 10px hsl(0 0% 100% / 0.9)',
+      titleWeight: 700,
+      titleLetterSpacing: '-0.02em',
+      uppercaseTitle: false,
+      buttonVariant: 'clay',
+      cardVariant: 'clay',
+    },
+    prompt: `# 角色定位
+你是精通 Claymorphism（黏土拟态）的前端设计工程师，输出可直接落地的样式规范。
+
+## 设计理念
+把界面做成「捏出来的橡皮泥」：大圆角、饱满体积、双层柔影（外投影 + 内高光），每个元素都像有厚度的实体。层级靠体积而非描边表达；比新拟态更饱和、更童趣，但同一屏只允许一个视觉主角。
+
+## 字体方案
+- 标题：Fredoka 700，字距 -0.02em，字号阶梯 20 / 28 / 40px
+- 正文：Nunito 400 / 700，行高 1.65，最小字号 13px
+- 全站字族不超过 2 个；禁用 300 以下细体（笔画会被体积感吞掉）
+
+## HSL 色板
+- 页面背景 hsl(30 40% 96%)（米白），表面 hsl(26 55% 90%)（黏土体）
+- 主色 hsl(12 82% 56%)（陶土珊瑚），仅用于主按钮、徽章与选中态
+- 辅助色 hsl(174 55% 42%)（薄荷）做次级标记，面积不超过主色的三分之一
+- 文字 hsl(20 25% 16%)，次级 hsl(20 14% 32%)；禁用纯黑与 55% 以下灰字
+
+## 间距与圆角
+- 圆角 20～28px：卡片 26px、按钮 999px（胶囊）、输入框 18px
+- 间距体系 6 / 12 / 20 / 32 / 48px，卡片内边距不小于 20px
+- 阴影三段叠加：外投影 8px 10px 18px、底部内阴影、顶部白色高光；模糊值不得为 0
+
+## 组件规则
+- 卡片：无描边，靠三段阴影塑形；hover 上浮 2px、外投影扩散 4px
+- 按钮：胶囊形 + 内高光 + 底部内阴影；按下位移 2px 并收窄内阴影
+- 图标与插画统一 2px 圆头描边，端点全圆角，禁用任何尖角
+
+## 反模式禁令
+- 禁用硬阴影、1px 细描边、玻璃模糊与金属质感（破坏体积一致性）
+- 禁止把柔影用在大面积背景上：每屏最多两个投影层
+- 禁用纯黑文字与冷灰阶，中性色必须带暖调；对比度不低于 4.5:1`,
+  },
+  {
+    id: 'frutiger-aero',
+    nameZh: '水果航空',
+    nameEn: 'Frutiger Aero',
+    category: '复古',
+    tags: ['亮面高光', '玻璃气泡', '自然渐变', '千禧科技'],
+    summary: '玻璃高光与自然渐变叠出的 2000 年代科技乐观主义，亮面塑料质感。',
+    preview: {
+      palette: {
+        bg: 'hsl(196 70% 88%)',
+        surface: 'hsl(0 0% 100%)',
+        text: 'hsl(200 60% 18%)',
+        textMuted: 'hsl(200 22% 36%)',
+        accent: 'hsl(192 90% 34%)',
+        accentText: 'hsl(0 0% 100%)',
+        border: 'hsl(190 55% 76%)',
+        shadowColor: 'hsl(195 50% 55% / 0.35)',
+      },
+      headingFont: '"Comfortaa", sans-serif',
+      bodyFont: '"Nunito", sans-serif',
+      radius: '18px',
+      borderWidth: '1px',
+      shadow: '0 10px 18px hsl(195 50% 55% / 0.35), inset 0 1px 0 hsl(0 0% 100% / 0.95)',
+      titleWeight: 600,
+      titleLetterSpacing: '0.01em',
+      uppercaseTitle: false,
+      buttonVariant: 'gradient',
+      cardVariant: 'flat',
+      backgroundImage:
+        'radial-gradient(circle at 20% 2%, hsl(0 0% 100% / 0.95), transparent 40%), radial-gradient(circle at 86% 86%, hsl(88 70% 72% / 0.42), transparent 56%), linear-gradient(160deg, hsl(196 85% 93%), hsl(190 75% 86%) 48%, hsl(140 45% 86%))',
+    },
+    prompt: `# 角色定位
+你是精通 Frutiger Aero（水果航空，2004—2009 科技乐观主义）的前端设计工程师，输出可直接落地的样式规范。
+
+## 设计理念
+玻璃、水、草与阳光：高光塑料表面 + 透明气泡 + 自然渐变背景，是 Windows Vista 与初代 iPhone 那套「科技让世界变好」的视觉承诺。关键不是复古，而是让高光服从材质物理——亮面来自倒角与反射，而不是贴一层渐变膜。
+
+## 字体方案
+- 标题：Comfortaa 600，圆润几何，字距 0.01em，字号阶梯 20 / 26 / 36px
+- 正文：Nunito 400 / 700，行高 1.7，最小字号 12px
+- 英文标签用 Nunito 800 全大写、字距 0.12em；全站不超过 2 个字体族
+
+## HSL 色板
+- 背景 hsl(196 70% 88%)（天光蓝），叠加 160 度渐变至 hsl(140 45% 86%)（草绿）
+- 表面 hsl(0 0% 100%)，永远配 1px 亮边 hsl(190 55% 76%) 与顶部白高光
+- 主色 hsl(192 90% 34%)（水青），用于主按钮与链接；文字 hsl(200 60% 18%)
+- 辅助 hsl(88 70% 55%)（新叶绿）只做点缀，面积不超过 10%
+
+## 间距与圆角
+- 圆角 14～20px，按钮 999px 胶囊，图标容器 50% 圆形
+- 间距体系 8 / 16 / 24 / 40px，卡片内边距 20px
+- 每个亮面元素必须有顶部 1px 白高光 + 底部 2px 暗边，模拟塑料倒角
+
+## 组件规则
+- 卡片：白底 + 顶部内高光 + 柔和青灰投影，投影扩散不小于 18px
+- 按钮：上亮下暗的双色渐变 + 内高光；hover 只提升亮度 4%，不做位移
+- 徽章与图标做成玻璃气泡：径向高光 + 90% 不透明填充，禁用纯平面色块
+
+## 反模式禁令
+- 禁用暗色背景、锐利直角与无高光的纯色平面（失去 2000 年代质感）
+- 禁用赛博霓虹、故障艺术与冷金属灰（与乐观基调冲突）
+- 禁止高饱和纯色铺底，背景必须是自然向渐变；正文对比度不低于 4.5:1`,
+  },
+  {
+    id: 'liquid-glass',
+    nameZh: '液态玻璃',
+    nameEn: 'Liquid Glass',
+    category: '未来',
+    tags: ['折射', '镜面高光', '浮层控件', 'Apple'],
+    summary: '低模糊透镜材质：边缘折射与镜面高光浮在内容之上，玻璃只做控件。',
+    preview: {
+      palette: {
+        bg: 'hsl(220 30% 96%)',
+        surface: 'rgba(255, 255, 255, 0.62)',
+        text: 'hsl(220 20% 12%)',
+        textMuted: 'hsl(220 12% 34%)',
+        accent: 'hsl(211 100% 50%)',
+        accentText: 'hsl(0 0% 100%)',
+        border: 'rgba(255, 255, 255, 0.90)',
+        shadowColor: 'hsl(220 30% 25% / 0.16)',
+      },
+      headingFont: '"Inter Tight", sans-serif',
+      bodyFont: '"Inter Tight", sans-serif',
+      radius: '22px',
+      borderWidth: '1px',
+      shadow: '0 12px 30px hsl(220 30% 25% / 0.16), inset 0 1px 0 hsl(0 0% 100% / 0.95)',
+      titleWeight: 600,
+      titleLetterSpacing: '-0.015em',
+      uppercaseTitle: false,
+      buttonVariant: 'liquid',
+      cardVariant: 'liquid',
+      backgroundImage:
+        'radial-gradient(circle at 18% 12%, hsl(205 90% 72% / 0.55), transparent 55%), radial-gradient(circle at 82% 24%, hsl(330 80% 78% / 0.45), transparent 55%), radial-gradient(circle at 60% 92%, hsl(160 60% 72% / 0.45), transparent 60%)',
+    },
+    prompt: `# 角色定位
+你是精通 Liquid Glass（Apple 2025 液态玻璃）的前端设计工程师，输出可直接落地的样式规范。
+
+## 设计理念
+玻璃不是磨砂，而是透镜：低模糊（2px）让背后内容清晰可见，靠边缘折射与镜面高光说明「这里有一层玻璃」。控件浮在内容之上，形态随交互流动变形。玻璃只承担导航与控件的材质，内容层永远实心。
+
+## 字体方案
+- 标题：Inter Tight 600，字距 -0.015em，字号阶梯 20 / 28 / 34px
+- 正文：Inter Tight 400，行高 1.5；数字启用 tabular-nums
+- 全站只用 1 个字体族，靠字重 400 / 600 与字号差建立层级
+
+## HSL 色板
+- 背景 hsl(220 30% 96%)（系统浅灰），背后铺 2～3 团柔和色斑供折射
+- 玻璃表面 rgba(255, 255, 255, 0.62)，边缘 rgba(255, 255, 255, 0.90) 的 1px 亮边
+- 主色 hsl(211 100% 50%)（系统蓝），仅用于主操作；文字 hsl(220 20% 12%)
+- 次级文字 hsl(220 12% 34%)；禁止白玻璃叠白底而不加色斑（界面会失去边界）
+
+## 间距与圆角
+- 圆角连续：按钮 999px、卡片 22px、弹层 28px，同一视图只用两档
+- 间距体系 6 / 12 / 20 / 28px，控件最小点击区 44×44px
+- 深度只允许两层：内容层 + 控制层；禁止玻璃叠玻璃
+
+## 组件规则
+- 卡片：半透明白 + blur(2px) saturate(140%) + 顶部 1px 白内高光 + 极轻投影
+- 按钮：主操作实心系统蓝 + 上缘镜面高光；次操作玻璃胶囊，文字用主文字色
+- 状态切换 220ms 弹簧曲线；按下亮度提升 6%，不做缩放跳变
+
+## 反模式禁令
+- 禁用强模糊磨砂（超过 8px 即退化为玻璃拟态）、彩色渐变边框与重投影
+- 禁止玻璃面板直接压在视频或高对比图之上而不加遮罩（对比度会跌破 4.5:1）
+- 禁用纯黑文字与 12px 以下字号；必须响应 prefers-reduced-transparency`,
+  },
+  {
+    id: 'solarpunk',
+    nameZh: '太阳朋克',
+    nameEn: 'Solarpunk',
+    category: '未来',
+    tags: ['生态', '有机曲线', '暖绿', '日光金'],
+    summary: '温室式的乐观未来：苔绿与日光金、有机曲线，拒绝直角的生态科技。',
+    preview: {
+      palette: {
+        bg: 'hsl(45 55% 93%)',
+        surface: 'hsl(42 35% 97%)',
+        text: 'hsl(150 30% 14%)',
+        textMuted: 'hsl(150 12% 30%)',
+        accent: 'hsl(140 45% 30%)',
+        accentText: 'hsl(45 50% 96%)',
+        border: 'hsl(140 20% 78%)',
+        shadowColor: 'hsl(150 25% 45% / 0.18)',
+      },
+      headingFont: '"Fraunces", serif',
+      bodyFont: '"Nunito", sans-serif',
+      radius: '22px',
+      borderWidth: '1px',
+      shadow: '0 10px 24px hsl(150 25% 45% / 0.18)',
+      titleWeight: 600,
+      titleLetterSpacing: '0',
+      uppercaseTitle: false,
+      buttonVariant: 'solid',
+      cardVariant: 'flat',
+      backgroundImage:
+        'radial-gradient(circle at 88% 6%, hsl(36 85% 55% / 0.30), transparent 52%), linear-gradient(165deg, hsl(45 60% 95%), hsl(95 38% 91%) 62%, hsl(150 30% 90%))',
+    },
+    prompt: `# 角色定位
+你是精通 Solarpunk（太阳朋克）的前端设计工程师，输出可直接落地的样式规范。
+
+## 设计理念
+赛博朋克的反面：不是霓虹废土，而是爬满藤蔓的太阳能温室。技术可见、可修、与人共居。视觉靠三件事成立——暖色底、叶绿与日光金的双主色、以及拒绝直角的有机曲线。
+
+## 字体方案
+- 标题：Fraunces 600，软衬线带手工笔意，字号阶梯 22 / 30 / 42px
+- 正文：Nunito 400，行高 1.75，最小字号 13px
+- 标签用 Fraunces 400 小型大写、字距 0.08em；全站不超过 2 个字体族
+
+## HSL 色板
+- 背景 hsl(45 55% 93%)（日光米），表面 hsl(42 35% 97%)（骨白）
+- 主色 hsl(140 45% 30%)（深苔绿），用于主按钮、标题强调与数据主线
+- 辅色 hsl(36 85% 48%)（太阳金），只做细线、图标与高亮，面积不超过 8%
+- 文字 hsl(150 30% 14%)，次级 hsl(150 12% 30%)；禁用纯黑与冷灰
+
+## 间距与圆角
+- 圆角不对称：卡片 22px 6px 22px 6px、按钮 999px，形成藤蔓式节奏
+- 间距体系 8 / 16 / 28 / 44px，卡片内边距 24px，区块留白必须大于间距
+- 分隔线 1px hsl(140 20% 84%)；投影极浅，扩散 24px、不透明度 0.16
+
+## 组件规则
+- 卡片：骨白底 + 一角收成 6px + 顶部 48px 宽日光金细条（不通栏）
+- 按钮：深苔绿实心胶囊 + 骨白文字；次级按钮透明底 + 1px 苔绿描边
+- 图表与进度用叶绿到日光金的暖向渐变，禁止冷蓝与紫
+
+## 反模式禁令
+- 禁用暗色主题、霓虹发光、尖锐直角与工业冷灰（与乐观生态冲突）
+- 禁止赛博朋克元素：故障、扫描线、雨夜、废墟
+- 禁用大面积纯绿色块铺底；文字对比度不低于 4.5:1`,
+  },
+  {
+    id: 'risograph',
+    nameZh: '孔版印刷',
+    nameEn: 'Risograph',
+    category: '艺术',
+    tags: ['专色', '套印错位', '网点', '纸感'],
+    summary: '双荧光专色、2～3px 套印错位与可见网点，复刻限量小册子的手作感。',
+    preview: {
+      palette: {
+        bg: 'hsl(43 47% 91%)',
+        surface: 'hsl(43 50% 97%)',
+        text: 'hsl(230 45% 16%)',
+        textMuted: 'hsl(230 18% 30%)',
+        accent: 'hsl(335 80% 55%)',
+        accentText: 'hsl(43 50% 97%)',
+        border: 'hsl(230 45% 18%)',
+        shadowColor: 'hsl(225 70% 42% / 0.90)',
+      },
+      headingFont: '"Space Grotesk", sans-serif',
+      bodyFont: '"IBM Plex Mono", monospace',
+      radius: '2px',
+      borderWidth: '2px',
+      shadow: '3px 3px 0 hsl(225 70% 42% / 0.90)',
+      titleWeight: 700,
+      titleLetterSpacing: '0.02em',
+      uppercaseTitle: true,
+      buttonVariant: 'riso',
+      cardVariant: 'riso',
+    },
+    prompt: `# 角色定位
+你是精通 Risograph（孔版印刷）视觉语言的前端设计工程师，输出可直接落地的样式规范。
+
+## 设计理念
+两种荧光专色、一次一色、故意套印不准。孔版印刷的魅力来自工艺缺陷：错位 2～3px 的双层轮廓、可见网点、纸张纤维。数字端要复刻的是「限量 200 份的小册子」的手作感，而不是印刷精度。
+
+## 字体方案
+- 标题：Space Grotesk 700，全大写，字距 0.02em，字号阶梯 22 / 30 / 44px
+- 正文：IBM Plex Mono 400，行高 1.6，字号 12～14px
+- 标签、日期与页码一律等宽大写；全站不超过 2 个字体族
+
+## HSL 色板
+- 背景 hsl(43 47% 91%)（未涂布米黄纸），表面 hsl(43 50% 97%)
+- 专色一 hsl(335 80% 55%)（荧光粉），专色二 hsl(225 70% 42%)（印刷蓝）
+- 两色重叠处用 multiply 混合出紫，禁止引入第三种墨
+- 文字 hsl(230 45% 16%)（偏蓝墨黑），次级 hsl(230 18% 30%)
+
+## 间距与圆角
+- 圆角 0～2px，禁止任何圆角装饰；按钮与卡片一律直角
+- 间距体系 8 / 16 / 24 / 32px，边距宁紧勿松，保持印刷版面的密度
+- 边框 2px 实线；硬阴影偏移 3～4px，模糊值必须为 0
+
+## 组件规则
+- 卡片：纸色底 + 2px 墨线 + 3px 3px 0 蓝色错位影，模拟第二色版
+- 按钮：荧光粉色块 + 纸色文字 + 无描边 + 右下蓝色错位影，hover 位移 1px
+- 图片与色块统一叠 6% 网点噪点；明暗一律用网点表达，禁止平滑渐变
+
+## 反模式禁令
+- 禁用渐变、发光、玻璃模糊与 3px 以上圆角
+- 禁止第三种专色、四色照片与精细线条（套印会糊成一团）
+- 禁用纯白背景与纯黑文字；正文对比度不低于 4.5:1`,
+  },
+  {
+    id: 'blueprint',
+    nameZh: '工程蓝图',
+    nameEn: 'Blueprint',
+    category: '工业',
+    tags: ['晒图蓝', '网格', '标注引线', '等宽'],
+    summary: '晒图纸式的技术制图：深蓝底、白色测量线与标注引线，零圆角零投影。',
+    preview: {
+      palette: {
+        bg: 'hsl(212 65% 22%)',
+        surface: 'rgba(255, 255, 255, 0.06)',
+        text: 'hsl(200 40% 97%)',
+        textMuted: 'hsl(200 30% 82%)',
+        accent: 'hsl(48 100% 62%)',
+        accentText: 'hsl(212 65% 18%)',
+        border: 'rgba(200, 220, 255, 0.55)',
+        shadowColor: 'hsl(200 60% 70% / 0.30)',
+      },
+      headingFont: '"IBM Plex Mono", monospace',
+      bodyFont: '"IBM Plex Sans", sans-serif',
+      radius: '0px',
+      borderWidth: '1px',
+      shadow: 'none',
+      titleWeight: 600,
+      titleLetterSpacing: '0.08em',
+      uppercaseTitle: true,
+      buttonVariant: 'outline',
+      cardVariant: 'outline',
+      backgroundImage:
+        'repeating-linear-gradient(0deg, hsl(200 60% 80% / 0.10) 0 1px, transparent 1px 24px), repeating-linear-gradient(90deg, hsl(200 60% 80% / 0.10) 0 1px, transparent 1px 24px)',
+    },
+    prompt: `# 角色定位
+你是精通工程蓝图（Blueprint / 技术制图）的前端设计工程师，输出可直接落地的样式规范。
+
+## 设计理念
+把界面当成一张晒图纸：深蓝底、白色细线、坐标网格与标注引线。信息不是被「设计」出来的，而是被「测量」出来的——每个模块都有编号、尺寸与公差。禁用一切装饰性阴影与圆角。
+
+## 字体方案
+- 标题：IBM Plex Mono 600，全大写，字距 0.08em，字号阶梯 18 / 24 / 34px
+- 正文：IBM Plex Sans 400，行高 1.6，最小字号 12px
+- 编号、单位、比例尺一律等宽；数值列右对齐并启用 tabular-nums
+
+## HSL 色板
+- 背景 hsl(212 65% 22%)（晒图蓝），网格线 hsl(200 60% 80% / 0.10)
+- 表面 rgba(255, 255, 255, 0.06)，描边 rgba(200, 220, 255, 0.55)
+- 主色 hsl(48 100% 62%)（标注黄），只用于关键尺寸与 CTA
+- 文字 hsl(200 40% 97%)，次级 hsl(200 30% 82%)；禁用纯白与纯黑
+
+## 间距与圆角
+- 圆角 0px，全部直角；边框 1px 实线，分区可用 1px 虚线
+- 间距对齐 8px 网格；背景每 24px 一条细线，每 120px 一条加粗线
+- 无投影；层次只靠线宽（1px / 2px）与透明度区分
+
+## 组件规则
+- 卡片：透明底 + 1px 半透明描边 + 左上角编号（MONO 10px，如 FIG.03）
+- 按钮：透明底 + 1px 标注黄描边 + 黄色文字；hover 反转为黄底深蓝字
+- 图表用白色 1px 线与黄色数据点，标注必须带引线与端点圆点
+
+## 反模式禁令
+- 禁用圆角、渐变、投影、玻璃材质与彩色插画
+- 禁止装饰性图标与 emoji；图形只允许测量线、标注与网格
+- 禁用低对比灰蓝小字；正文对比度不低于 4.5:1`,
+  },
+  {
+    id: 'corporate-memphis',
+    nameZh: '企业扁平插画',
+    nameEn: 'Corporate Memphis',
+    category: '企业',
+    tags: ['扁平插画', '几何斑块', '无五官人物', '大留白'],
+    summary: '科技公司通用语言：纯平色块与无五官人物，靠留白与色彩比例取胜。',
+    preview: {
+      palette: {
+        bg: 'hsl(210 40% 96%)',
+        surface: 'hsl(0 0% 100%)',
+        text: 'hsl(222 25% 18%)',
+        textMuted: 'hsl(222 14% 34%)',
+        accent: 'hsl(232 68% 52%)',
+        accentText: 'hsl(0 0% 100%)',
+        border: 'hsl(210 25% 88%)',
+        shadowColor: 'hsl(222 25% 40% / 0.12)',
+      },
+      headingFont: '"Jost", sans-serif',
+      bodyFont: '"Nunito", sans-serif',
+      radius: '10px',
+      borderWidth: '1px',
+      shadow: '0 6px 16px hsl(222 25% 40% / 0.12)',
+      titleWeight: 600,
+      titleLetterSpacing: '-0.01em',
+      uppercaseTitle: false,
+      buttonVariant: 'solid',
+      cardVariant: 'flat',
+    },
+    prompt: `# 角色定位
+你是精通 Corporate Memphis（企业扁平插画 / Alegria）风格的前端设计工程师，输出可直接落地的样式规范。
+
+## 设计理念
+2017 年后科技公司的通用语言：无五官的拉长四肢人物、纯平色块、几何斑块与大量留白。它安全、友善、可无限延展，代价是个性稀薄——所以必须在色彩比例与排版上做出自己的取舍，而不是照搬紫色小人。
+
+## 字体方案
+- 标题：Jost 600，几何无衬线，字距 -0.01em，字号阶梯 20 / 26 / 36px
+- 正文：Nunito 400，行高 1.7，最小字号 13px
+- 按钮与标签用 Jost 600、字距 0.02em，句首大写而非全大写
+
+## HSL 色板
+- 背景 hsl(210 40% 96%)（雾白蓝），表面 hsl(0 0% 100%)
+- 主色 hsl(232 68% 52%)（企业蓝），只用于主按钮与链接
+- 辅助 hsl(12 85% 62%)（珊瑚）与 hsl(168 55% 45%)（青绿）仅做插画与斑块
+- 文字 hsl(222 25% 18%)，次级 hsl(222 14% 34%)；禁用纯黑
+
+## 间距与圆角
+- 圆角 10px 统一（按钮、卡片、输入框同值）；插画形状可用 50% 圆与 blob
+- 间距体系 8 / 16 / 24 / 40 / 64px，区块留白不少于 40px
+- 投影只用一档：0 6px 16px、不透明度 0.12，禁止多层叠加
+
+## 组件规则
+- 卡片：白底 + 10px 圆角 + 单档柔影，无描边；hover 上浮 2px
+- 按钮：企业蓝实心 + 白字；次按钮白底 + 1px hsl(210 25% 88%) 描边
+- 插画：纯平色块、无描边、无渐变、人物不画五官；单屏插画面积不超过 35%
+
+## 反模式禁令
+- 禁用手绘纹理、颗粒、玻璃与金属质感（必须保持纯平）
+- 禁止紫色渐变与「三个人站一排」的模板构图
+- 禁用低于 4.5:1 的浅灰文字；插画不得挤占正文对比度`,
+  },
+  {
+    id: 'm3-expressive',
+    nameZh: '表现性 Material',
+    nameEn: 'Material 3 Expressive',
+    category: '现代',
+    tags: ['色调面', '圆角区间', '弹簧动效', '表现性字阶'],
+    summary: 'Material 把音量调大：圆角成区间、字号承层级、大块色调面与弹簧动效。',
+    preview: {
+      palette: {
+        bg: 'hsl(250 25% 97%)',
+        surface: 'hsl(258 40% 92%)',
+        text: 'hsl(255 30% 14%)',
+        textMuted: 'hsl(255 14% 30%)',
+        accent: 'hsl(258 58% 44%)',
+        accentText: 'hsl(0 0% 100%)',
+        border: 'hsl(258 25% 84%)',
+        shadowColor: 'hsl(258 30% 40% / 0.14)',
+      },
+      headingFont: '"Rubik", sans-serif',
+      bodyFont: '"Rubik", sans-serif',
+      radius: '24px',
+      borderWidth: '1px',
+      shadow: '0 4px 12px hsl(258 30% 40% / 0.14)',
+      titleWeight: 700,
+      titleLetterSpacing: '-0.01em',
+      uppercaseTitle: false,
+      buttonVariant: 'solid',
+      cardVariant: 'flat',
+    },
+    prompt: `# 角色定位
+你是精通 Material 3 Expressive（2025 表现性设计语言）的前端设计工程师，输出可直接落地的样式规范。
+
+## 设计理念
+Material 把音量调大：形状不再只有一个圆角值，而是一个区间；字号承担原本由分隔线与标签分担的层级；颜色以大块色调面出现，而不是中性底上的小点缀；动效改为弹簧而非固定时长曲线。
+
+## 字体方案
+- 标题：Rubik 700，字距 -0.01em，字号阶梯 22 / 30 / 40px（重点区再加 4px）
+- 正文：Rubik 400，行高 1.55，最小字号 12px
+- 标签用 Rubik 500、字距 0.04em；数字启用 tabular-nums
+
+## HSL 色板
+- 背景 hsl(250 25% 97%)（色调面最浅档），容器 hsl(258 40% 92%)
+- 主色 hsl(258 58% 44%)（主色深档），其上文字用 hsl(0 0% 100%)
+- 次色 hsl(190 45% 38%)、第三色 hsl(20 60% 45%) 仅用于分区与强调
+- 文字 hsl(255 30% 14%)，次级 hsl(255 14% 30%)；不使用纯黑
+
+## 间距与圆角
+- 圆角是区间而非单值：小控件 12px、卡片 24px、大容器 32px、按钮 999px
+- 同一视图至少出现两档圆角形成形状对比，禁止全站一个半径
+- 间距 4 / 8 / 12 / 16 / 24 / 32px；触摸目标不小于 48×48px
+
+## 组件规则
+- 卡片：色调容器底 + 24px 圆角、无描边；重点卡片提升一档色调
+- 按钮：主按钮实心胶囊、次按钮色调容器胶囊、第三按钮纯文字
+- 状态变化优先改变形状与高度：弹簧 260ms，stiffness 380 / damping 32
+
+## 反模式禁令
+- 禁用统一圆角、靠灰色描边分隔线堆叠与四平八稳的等宽三栏
+- 禁止紫蓝渐变、玻璃模糊与硬阴影（与色调面体系冲突）
+- 禁用小于 12px 的正文；必须响应 prefers-reduced-motion 与用户放大字号`,
+  },
+  {
+    id: 'cassette-futurism',
+    nameZh: '磁带未来主义',
+    nameEn: 'Cassette Futurism',
+    category: '工业',
+    tags: ['米色塑料', '琥珀荧光', '丝印标签', '内倒角'],
+    summary: '米色塑料机箱与琥珀读数：可拆可修的笨重实体，靠内倒角做层次。',
+    preview: {
+      palette: {
+        bg: 'hsl(38 30% 84%)',
+        surface: 'hsl(40 35% 90%)',
+        text: 'hsl(30 20% 14%)',
+        textMuted: 'hsl(30 12% 32%)',
+        accent: 'hsl(35 92% 48%)',
+        accentText: 'hsl(30 30% 10%)',
+        border: 'hsl(35 18% 62%)',
+        shadowColor: 'hsl(32 22% 30%)',
+      },
+      headingFont: '"Chakra Petch", sans-serif',
+      bodyFont: '"IBM Plex Sans", sans-serif',
+      radius: '6px',
+      borderWidth: '1px',
+      shadow:
+        'inset 0 2px 0 hsl(0 0% 100% / 0.70), inset 0 -3px 0 hsl(35 15% 55% / 0.50), 0 8px 18px hsl(35 20% 40% / 0.25)',
+      titleWeight: 600,
+      titleLetterSpacing: '0.06em',
+      uppercaseTitle: false,
+      buttonVariant: 'hard',
+      cardVariant: 'flat',
+    },
+    prompt: `# 角色定位
+你是精通 Cassette Futurism（磁带未来主义）的前端设计工程师，输出可直接落地的样式规范。
+
+## 设计理念
+1970—1980 年代人们对未来的想象：米色塑料机箱、琥珀色荧光字符、丝印标签、螺丝与散热格栅。技术是笨重、可拆、可维修的实体。关键在「塑料的老化质感」，而不是叠一层复古滤镜。
+
+## 字体方案
+- 标题：Chakra Petch 600，工业方角，字距 0.06em，字号阶梯 18 / 24 / 32px
+- 正文：IBM Plex Sans 400，行高 1.6，最小字号 12px
+- 面板标签：IBM Plex Mono 500，全大写、字距 0.14em、字号 10px
+
+## HSL 色板
+- 背景 hsl(38 30% 84%)（旧米色机箱），表面 hsl(40 35% 90%)（面板浅一档）
+- 主色 hsl(35 92% 48%)（琥珀荧光），用于主按钮与读数；其文字 hsl(30 30% 10%)
+- 辅助 hsl(150 30% 35%)（指示灯绿）只做状态点，面积小于 3%
+- 文字 hsl(30 20% 14%)，次级 hsl(30 12% 32%)；禁用纯黑与纯白
+
+## 间距与圆角
+- 圆角 4～8px（注塑件倒角）：按钮 6px、面板 8px
+- 间距 6 / 12 / 18 / 24 / 36px；面板内边距 16px，标签与内容间距 4px
+- 层次靠 1px 暗边与顶部 1px 高光的内倒角；外投影极克制
+
+## 组件规则
+- 卡片：米色面板 + 内倒角（上亮下暗）+ 左上角 10px 等宽丝印标签
+- 按钮：琥珀实心 + 深褐文字 + 1px 暗边；按下内凹 1px 并降低亮度 6%
+- 读数区用琥珀字符配 hsl(30 20% 12%) 底，模拟段码屏；禁止发光外溢
+
+## 反模式禁令
+- 禁用玻璃、镜面金属、霓虹紫与故障效果（那是 cyberpunk 的语汇）
+- 禁止纯白背景、0px 锐角与气泡感大圆角
+- 禁用彩色渐变；层次必须由倒角高光表达，正文对比度不低于 4.5:1`,
+  },
+  {
+    id: 'dark-academia',
+    nameZh: '学院暗调',
+    nameEn: 'Dark Academia',
+    category: '复古',
+    tags: ['深棕', '羊皮纸', '衬线', '书斋'],
+    summary: '深胡桃木与羊皮纸的深夜书斋：酒红书脊、黄铜细线与索引式编排。',
+    preview: {
+      palette: {
+        bg: 'hsl(28 18% 12%)',
+        surface: 'hsl(30 20% 18%)',
+        text: 'hsl(42 30% 90%)',
+        textMuted: 'hsl(40 12% 72%)',
+        accent: 'hsl(355 45% 38%)',
+        accentText: 'hsl(40 35% 94%)',
+        border: 'hsl(35 18% 30%)',
+        shadowColor: 'hsl(28 25% 6% / 0.50)',
+      },
+      headingFont: '"Playfair Display", serif',
+      bodyFont: '"Noto Serif SC", serif',
+      radius: '2px',
+      borderWidth: '1px',
+      shadow: '0 8px 22px hsl(28 25% 6% / 0.45)',
+      titleWeight: 600,
+      titleLetterSpacing: '0.02em',
+      uppercaseTitle: false,
+      buttonVariant: 'solid',
+      cardVariant: 'outline',
+      backgroundImage:
+        'radial-gradient(circle at 50% -12%, hsl(38 35% 30% / 0.85), transparent 62%)',
+    },
+    prompt: `# 角色定位
+你是精通 Dark Academia（学院暗调）视觉语言的前端设计工程师，输出可直接落地的样式规范。
+
+## 设计理念
+老图书馆的夜晚：深胡桃木、羊皮纸、皮革书脊与一盏黄铜台灯。质感来自材质与光，而不是装饰；信息像书籍索引一样被编排——小字号、紧行距、明确的层级标签。禁用任何科技感的发光与渐变。
+
+## 字体方案
+- 标题：Playfair Display 600，字距 0.02em，字号阶梯 20 / 28 / 38px
+- 正文：Noto Serif SC 400，行高 1.75，字号 13～15px（长文可读性优先）
+- 编号与引文用 Noto Serif SC 400 斜体；全站不超过 2 个字体族
+
+## HSL 色板
+- 背景 hsl(28 18% 12%)（深胡桃），表面 hsl(30 20% 18%)（皮革）
+- 主色 hsl(355 45% 38%)（酒红书脊），用于主按钮与关键标记
+- 辅色 hsl(38 45% 55%)（黄铜）只做细线、页码与焦点环，面积小于 5%
+- 文字 hsl(42 30% 90%)（羊皮纸），次级 hsl(40 12% 72%)；禁用纯白
+
+## 间距与圆角
+- 圆角 2px，边框 1px hsl(35 18% 30%)；禁止胶囊与大圆角
+- 间距 8 / 16 / 24 / 36 / 56px；正文行宽控制在 68 个汉字以内
+- 层次靠 1px 细线与留白；投影只用一档，不透明度不超过 0.45
+
+## 组件规则
+- 卡片：皮革底 + 1px 细线、无填充投影；标题下加 24px 宽、1px 高的黄铜短线
+- 按钮：酒红实心 + 羊皮纸文字；次按钮透明底 + 1px 细线，hover 只提亮边框
+- 数据与引用块用左侧 2px 黄铜竖线标记；图标只用 1.5px 线稿
+
+## 反模式禁令
+- 禁用霓虹、玻璃、彩色渐变与高饱和蓝紫（破坏书斋的暗调）
+- 禁止大圆角卡片、胶质高光与大面积纯黑背景
+- 禁用 12px 以下正文与低于 4.5:1 的对比度；暖调暗色必须保留层次差值`,
+  },
 ];
