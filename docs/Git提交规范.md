@@ -104,8 +104,8 @@ scope 决定粒度，**建议填**。本项目约定以下取值：
 | `filters` | `src/App.tsx` — 分类/搜索/计数/筛选栏 |
 | `a11y` | 跨组件的无障碍统一调整 |
 | `seo` | `index.html`、`public/` — 标题、OG、favicon |
-| `theme` | `tailwind.config.js`、`src/index.css` — 设计令牌与全局样式 |
-| `build` | `vite.config.ts`、`tsconfig*.json`、`postcss.config.js` |
+| `theme` | `src/index.css`（`@theme` 令牌块）— 设计令牌与全局样式 |
+| `build` | `vite.config.ts`、`tsconfig*.json` |
 | `verify` | `scripts/verify-*.mjs|cjs` 与校验命令 |
 | `deps` | `package.json` / `package-lock.json` |
 | `docs` | Markdown 文档与报告 |

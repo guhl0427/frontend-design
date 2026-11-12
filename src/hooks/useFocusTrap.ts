@@ -17,7 +17,11 @@ const FOCUSABLE_SELECTOR = [
  *
  * 用法：`const panelRef = useFocusTrap<HTMLDivElement>();` 再把 ref 挂到面板根节点（建议加 tabIndex={-1}）。
  */
-export function useFocusTrap<T extends HTMLElement>(): RefObject<T> {
+export function useFocusTrap<T extends HTMLElement>(): RefObject<T | null> {
+  /*
+    React 19 的 useRef<T>(null) 返回 RefObject<T | null>（.current 恒可能为 null），
+    因此返回类型不能再收窄成 RefObject<T>；ref 属性本身接受 RefObject<T | null>。
+  */
   const panelRef = useRef<T>(null);
 
   useEffect(() => {

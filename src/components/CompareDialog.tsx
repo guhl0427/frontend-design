@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type JSX } from 'react';
 import type { StyleItem } from '../types';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { splitPrompt } from '../utils/promptSections';
@@ -46,7 +46,7 @@ export default function CompareDialog({ items, onClose }: CompareDialogProps): J
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-sm sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-xs sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -56,7 +56,7 @@ export default function CompareDialog({ items, onClose }: CompareDialogProps): J
         ref={panelRef}
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        className="flex max-h-[92vh] w-full max-w-[1400px] flex-col overflow-hidden border border-line-strong bg-surface-raised outline-none"
+        className="flex max-h-[92vh] w-full max-w-[1400px] flex-col overflow-hidden border border-line-strong bg-surface-raised outline-hidden"
       >
         {/* 头部 */}
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line px-5 py-4">

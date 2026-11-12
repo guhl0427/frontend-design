@@ -1,3 +1,4 @@
+import type { JSX } from 'react';
 import type { StyleItem } from '../types';
 
 interface CompareTrayProps {
@@ -17,7 +18,7 @@ export default function CompareTray({ items, onRemove, onClear, onStart }: Compa
   if (items.length === 0) return <></>;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line-strong bg-surface-raised/95 backdrop-blur">
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line-strong bg-surface-raised/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
         <span className="font-mono text-[10.5px] tracking-[0.16em] text-ink-faint">对比集</span>
 

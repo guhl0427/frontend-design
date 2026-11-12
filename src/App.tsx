@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type JSX } from 'react';
 import type { StyleItem } from './types';
 import { CATEGORIES, STYLES } from './data/styles';
 import StyleCard from './components/StyleCard';
@@ -74,7 +74,7 @@ function emptyMessageFor(filter: string, favorites: string[], recent: string[]):
 }
 
 export default function App(): JSX.Element {
-  // 首屏从 URL 恢复视图（F1 深链分享）：?cat=<分类>&q=<关键词>&style=<风格id>
+  // 首屏从 URL 恢复视图（F1 深链分享）：?cat=<英文分类 slug>&q=<关键词>&style=<风格id>
   const initial = useMemo(() => readViewState(), []);
   const [activeFilter, setActiveFilter] = useState<string>(() =>
     CATEGORY_FILTERS.includes(initial.category) ? initial.category : DEFAULT_VIEW.category,
@@ -190,7 +190,7 @@ export default function App(): JSX.Element {
       </header>
 
       {/* 筛选与搜索 */}
-      <div className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur">
+      <div className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-sm">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           {/* 小屏上分类放不下时会横向滚动，右边缘渐隐提示「后面还有」 */}
           <div className="no-scrollbar -ml-3 -mb-px flex gap-x-0.5 overflow-x-auto max-sm:[mask-image:linear-gradient(to_right,#000_0%,#000_82%,transparent_100%)]">
@@ -242,7 +242,7 @@ export default function App(): JSX.Element {
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="搜索风格名称或关键词"
-                className="w-full border-b border-line-strong bg-transparent py-1 pr-2 pl-4 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none"
+                className="w-full border-b border-line-strong bg-transparent py-1 pr-2 pl-4 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-hidden"
               />
             </div>
             <span className="font-mono text-[11px] tracking-[0.08em] whitespace-nowrap text-ink-faint">
@@ -317,8 +317,8 @@ export default function App(): JSX.Element {
           </p>
           <p className="mt-2 max-w-[64ch] text-[13px] leading-[1.75] text-ink-faint">
             支持深链分享、Markdown 与 DESIGN.md 导出、三档参数定制、多风格对比。链接参数
-            <code className="mx-1 font-mono text-ink-muted">?cat= 分类 &amp; q= 关键词 &amp; style= 风格</code>
-            可直接分享。
+            <code className="mx-1 font-mono text-ink-muted">?cat=modern &amp; style=bauhaus</code>
+            可直接分享（分类使用英文 slug）。
           </p>
         </div>
       </footer>

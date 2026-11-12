@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type JSX } from 'react';
 import type { CustomizeOptions, StyleItem } from '../types';
 import { FONT_OPTIONS } from '../data/fonts';
 import { useCopy } from '../hooks/useCopy';
@@ -87,7 +87,7 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-xs"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -97,7 +97,7 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
         ref={panelRef}
         tabIndex={-1}
         onClick={(event) => event.stopPropagation()}
-        className="flex h-full w-full max-w-[460px] flex-col border-l border-line-strong bg-surface-raised outline-none"
+        className="suppress-subpixel-aa flex h-full w-full max-w-[460px] flex-col border-l border-line-strong bg-surface-raised"
         style={{
           transform: entered ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 280ms cubic-bezier(0.32, 0.72, 0, 1)',
@@ -191,7 +191,7 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
                   value={options.brand.productName}
                   onChange={(event) => setBrand('productName', event.target.value)}
                   placeholder="留空则沿用风格示例文案"
-                  className="mt-1.5 w-full border border-line bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none"
+                  className="mt-1.5 w-full border border-line bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-hidden"
                 />
               </div>
               <div>
@@ -212,7 +212,7 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
                     value={options.brand.accentColor}
                     onChange={(event) => setBrand('accentColor', event.target.value)}
                     placeholder="#22c55e（留空沿用风格色）"
-                    className="w-full border border-line bg-surface px-3 py-2 font-mono text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none"
+                    className="w-full border border-line bg-surface px-3 py-2 font-mono text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -225,7 +225,7 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
                     id="brand-heading-font"
                     value={options.brand.headingFont}
                     onChange={(event) => setBrand('headingFont', event.target.value)}
-                    className="mt-1.5 w-full cursor-pointer border border-line bg-surface px-3 py-2 text-[13px] text-ink focus:border-brand focus:outline-none"
+                    className="mt-1.5 w-full cursor-pointer border border-line bg-surface px-3 py-2 text-[13px] text-ink focus:border-brand focus:outline-hidden"
                   >
                     <option value="">沿用风格</option>
                     {FONT_OPTIONS.map((font) => (
@@ -243,7 +243,7 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
                     id="brand-body-font"
                     value={options.brand.bodyFont}
                     onChange={(event) => setBrand('bodyFont', event.target.value)}
-                    className="mt-1.5 w-full cursor-pointer border border-line bg-surface px-3 py-2 text-[13px] text-ink focus:border-brand focus:outline-none"
+                    className="mt-1.5 w-full cursor-pointer border border-line bg-surface px-3 py-2 text-[13px] text-ink focus:border-brand focus:outline-hidden"
                   >
                     <option value="">沿用风格</option>
                     {FONT_OPTIONS.map((font) => (

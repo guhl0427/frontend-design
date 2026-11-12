@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, type JSX } from 'react';
 import type { StyleItem, StylePalette } from '../types';
 import { useCopy } from '../hooks/useCopy';
 import { useFocusTrap } from '../hooks/useFocusTrap';
@@ -120,7 +120,7 @@ export default function PromptDetail({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-xs"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -129,7 +129,7 @@ export default function PromptDetail({
       <div
         ref={panelRef}
         tabIndex={-1}
-        className="flex max-h-[86vh] w-full max-w-[660px] flex-col overflow-hidden border border-line-strong bg-surface-raised outline-none"
+        className="flex max-h-[86vh] w-full max-w-[660px] flex-col overflow-hidden border border-line-strong bg-surface-raised outline-hidden"
         onClick={(event) => event.stopPropagation()}
       >
         {/* 头部 */}

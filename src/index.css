@@ -1,6 +1,45 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/*
+  Tailwind v4 的暗色变体不再由 JS 配置里的 darkMode 决定，改为声明式：
+  仍以 html.dark 为开关，与 index.html 上的 class 保持一致（当前未使用 dark: 工具类）。
+*/
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  校样台令牌（源码唯一处，Tailwind v4 起配置即 CSS）。
+  背景刻意去蓝（饱和度压到 4%），文字略偏暖（40°）；强调色琥珀的面积预算 < 2%，
+  仅出现在当前分类下划线、卡片编号 hover 与复制成功态。
+  透明度修饰（bg-surface/90）由 v4 的 color-mix 实现，令牌本身写纯色即可。
+*/
+@theme {
+  --color-surface: hsl(240 4% 5%);
+  --color-surface-raised: hsl(240 4% 8%);
+  --color-surface-hover: hsl(240 4% 12%);
+
+  --color-ink: hsl(40 12% 94%);
+  --color-ink-muted: hsl(40 6% 68%);
+  /* 52% 是这套底色下 4.5:1 的下限；再暗一级的编号/分类文字会读不清 */
+  --color-ink-faint: hsl(40 5% 52%);
+
+  --color-brand: hsl(38 76% 62%);
+  --color-brand-soft: hsl(38 60% 62% / 0.13);
+
+  --color-line: hsl(40 6% 18%);
+  --color-line-strong: hsl(40 7% 30%);
+
+  /* IBM Plex 家族让外壳统一在工程规格书的体质上；Inter Tight 只作为预览数据里的字体存在 */
+  --font-sans: 'IBM Plex Sans', 'Noto Sans SC', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* 直角语法：全站一个 2px，rounded-full 仍留给圆形符号 */
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 3px;
+  --radius-2xl: 3px;
+  --radius-3xl: 4px;
+}
 
 html {
   color-scheme: dark;
@@ -42,6 +81,18 @@ body {
 /* 统一焦点环：1px 琥珀，不参与布局 */
 :focus-visible {
   outline: 1px solid hsl(38 76% 62%);
+  outline-offset: 2px;
+}
+
+/*
+  抽屉面板的透明描边。实测（Chromium / Windows）：面板带这条描边时文字走灰度抗锯齿，
+  去掉后回落到 ClearType，字形边缘出现彩色条纹。Tailwind v3 的 outline-none 恰好产出
+  这条描边，v4 改为 outline-style: none 后不再产出，故在此显式保留——它同时承担
+  「面板被程序化聚焦时不显示焦点框」的职责，描边透明，不影响视觉与布局。
+  若抽屉去掉了进入动画（transform），这条可一并删除并重新核对文字观感。
+*/
+.suppress-subpixel-aa {
+  outline: 2px solid transparent;
   outline-offset: 2px;
 }
 
