@@ -3,8 +3,8 @@
 > 面向维护者的代码文档集。目标：在不逐行通读源码的前提下，能定位模块、理解数据流、判断改动影响面、安全地扩展内容。
 
 - **基线版本**：`main` @ `586e68c`（feat(styles): 风格扩充至 35 条并新增 3 组预览变体）
-- **文档校核时间**：2026-11-12
-- **当前状态**：`node scripts/verify-styles.mjs` 零错误零警告；`npm run build` 通过（32 modules，1.72s）
+- **文档校核时间**：2026-11-13
+- **当前状态**：`node scripts/verify-styles.mjs` 零错误零警告；`npm run build` 通过（34 modules）；`verify:ui` 45 项全绿
 - **内容规模**：35 条风格 / 9 个分类 / 10 种按钮变体 / 11 种卡片变体 / 27 个字体族
 
 ---
@@ -16,7 +16,7 @@
 1. 一套**可渲染的预览配置**（色板 / 字体 / 圆角 / 边框 / 阴影 / 组件变体）；
 2. 一段**七段结构化的提示词正文**（角色定位 / 设计理念 / 字体方案 / HSL 色板 / 间距与圆角 / 组件规则 / 反模式禁令）。
 
-在这两者之上提供六类能力：分类与关键词筛选、详情查看、一键复制、参数定制、多风格对比、Markdown 与 DESIGN.md 导出，以及 `?cat=&q=&style=` 深链分享。
+在这两者之上提供六类能力：分类与关键词筛选、**页面级详情（封面进入 → 带边界的整页样张 + 完整提示词）**、一键复制、参数定制、多风格对比、Markdown 与 DESIGN.md 导出，以及 `?cat=&q=&style=` 深链分享。
 
 它不是模板市场，也不是 CSS 框架：**预览是提示词的可视化凭证**，用户真正带走的是提示词文本。
 
@@ -25,7 +25,7 @@
 | 约束 | 现状 | 原因 |
 | --- | --- | --- |
 | 无后端 | 全部数据编译进 bundle | 内容是静态的，托管成本为零 |
-| 无路由库 | URL 查询参数 + `replaceState` | 只有单页，路由库带来的抽象大于收益 |
+| 无路由库 | URL 查询参数 + `replaceState`（筛选用）/ `pushState`（进出详情页） | 只有两种视图，路由库带来的抽象大于收益 |
 | 无状态库 | `App.tsx` 单一状态所有者 | 状态量小（7 个 `useState`），Context/Redux 属过度设计 |
 | 无 UI 组件库 | 手写 Tailwind 类名 | 外壳视觉是定制方向，组件库反而要覆盖其默认值 |
 | 无测试框架 | 两个独立 node 脚本 | 断言针对真实 DOM 与真实数据，不引入 runner 依赖 |
@@ -38,8 +38,8 @@
 | 项 | 值 |
 | --- | --- |
 | 技术栈 | Vite 8.3.7 · React 19.3 · TypeScript 6.0（strict） · Tailwind CSS 4.3（CSS-first） |
-| 源码规模 | 21 个文件，约 2.7k 行（不含 2.2k 行风格数据） |
-| 构建产物 | `dist/assets/*.js` 351.85 kB（gzip 108.62 kB）· `.css` 27.06 kB（gzip 5.79 kB） |
+| 源码规模 | 23 个文件，约 3.2k 行（不含 2.2k 行风格数据） |
+| 构建产物 | `dist/assets/*.js` 365.26 kB（gzip 112.05 kB）· `.css` 29.82 kB（gzip 6.22 kB） |
 | 开发 | `npm run dev` → `http://localhost:5173` |
 | 校验 | `npm run verify`（数据校验 + 类型检查 + 生产构建） |
 | 浏览器门槛 | Chrome 111+ / Safari 16.4+ / Firefox 128+（Tailwind 4 依赖 `color-mix()`） |
@@ -76,6 +76,8 @@
 | --- | --- | --- |
 | 风格（Style） | 一条完整的风格条目，含预览配置与提示词 | `StyleItem`，`src/types.ts` |
 | 预览（Preview） | 用该风格自身规则渲染的迷你落地页 hero，纯 CSS、无位图 | `src/components/Preview.tsx` |
+| 展示区（Showcase） | 详情页展示框内的整页样张：导航 / 主视觉 / 数据条 / 特性卡 / CTA / 页脚 | `src/components/StyleShowcase.tsx` |
+| 详情页（Detail page） | 由卡片封面进入的页面级视图，非模态；承载展示框、完整提示词与规格 | `src/components/StyleDetailPage.tsx` |
 | 提示词（Prompt） | 七段结构化纯文本，Markdown 风格但非严格 Markdown | `StyleItem.prompt` |
 | 段落（Section） | 提示词中以 `#` / `##` 开头的章节 | `PromptSection`，`src/utils/promptSections.ts` |
 | 定制（Customize） | 在提示词基底上叠加三档参数与品牌占位符，生成新提示词 | `src/utils/promptComposer.ts` |

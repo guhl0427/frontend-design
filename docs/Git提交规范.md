@@ -94,9 +94,9 @@ scope 决定粒度，**建议填**。本项目约定以下取值：
 |---|---|
 | `styles` | `src/data/styles.ts` — 风格数据、分类、提示词正文 |
 | `fonts` | `src/data/fonts.ts` — 字体清单 |
-| `preview` | `src/components/Preview.tsx` — CSS 实时预览渲染 |
+| `preview` | `src/components/Preview.tsx` / `stylePrimitives.ts` — CSS 实时预览与变体原语 |
 | `card` | `src/components/StyleCard.tsx` — 画廊卡片 |
-| `detail` | `src/components/PromptDetail.tsx` — 提示词详情弹窗 |
+| `detail` | `src/components/StyleDetailPage.tsx` / `StyleShowcase.tsx` — 风格详情页与整页展示区 |
 | `customizer` | `src/components/Customizer.tsx` — 定制参数抽屉 |
 | `prompt` | `src/utils/promptComposer.ts` — 提示词合成/去重/定制参数段 |
 | `export` | `src/utils/export.ts` — Markdown 导出 |
