@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+# 说明：推送到 main 由 deploy.yml 负责（它同样执行 verify:data + build），
+# 这里只在 PR 与手动触发时跑，避免同一提交构建两次。
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: 数据校验 + 构建
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 校验 35 条风格数据（字段 / 七段结构 / 对比度）
+        run: npm run verify:data
+
+      - name: 类型检查 + 生产构建
+        run: npm run build
+
+  ui:
+    name: 浏览器断言（手动触发）
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: 安装 Chromium
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run build
+
+      - name: 启动预览服务
+        run: |
+          npx vite preview --host 127.0.0.1 --port 4173 &
+          for i in $(seq 1 30); do
+            if curl -fsS -o /dev/null http://127.0.0.1:4173/; then echo "预览服务就绪"; exit 0; fi
+            sleep 1
+          done
+          echo "预览服务启动超时" >&2
+          exit 1
+
+      - name: 运行 45 项浏览器断言
+        run: node scripts/verify-ui.cjs http://127.0.0.1:4173
