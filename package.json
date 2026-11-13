@@ -2,14 +2,30 @@
   "name": "style-gallery",
   "private": true,
   "version": "1.0.0",
+  "description": "35 种前端视觉风格的结构化设计规格书：七段式提示词 + 纯 CSS 实时预览",
+  "keywords": [
+    "design-system",
+    "design-tokens",
+    "prompt-engineering",
+    "frontend",
+    "tailwindcss",
+    "react",
+    "style-gallery"
+  ],
+  "license": "MIT",
+  "author": "Re1",
   "type": "module",
+  "engines": {
+    "node": ">=20.19"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "verify:data": "node scripts/verify-styles.mjs",
     "verify:ui": "node scripts/verify-ui.cjs",
-    "verify": "npm run verify:data && npm run build"
+    "verify": "npm run verify:data && npm run build",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "react": "^19.3.1",
@@ -21,6 +37,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "esbuild": "^0.28.2",
+    "playwright-core": "^1.65.0",
     "tailwindcss": "^4.3.5",
     "typescript": "~6.0.3",
     "vite": "^8.3.7"
