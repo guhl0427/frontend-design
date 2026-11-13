@@ -25,7 +25,7 @@ const rowLabelClass = 'font-mono text-[10.5px] tracking-[0.14em] text-ink-faint'
 export default function CompareDialog({ items, onClose }: CompareDialogProps): JSX.Element {
   const panelRef = useFocusTrap<HTMLDivElement>();
 
-  // Esc 关闭 + 锁定背景滚动（与 PromptDetail 的模态实现保持一致）
+  // Esc 关闭 + 锁定背景滚动（与 Customizer 的模态实现保持一致）
   useEffect(() => {
     const onKeydown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') onClose();

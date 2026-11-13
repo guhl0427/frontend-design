@@ -1,7 +1,9 @@
 /**
  * 视图状态 ↔ URL 查询参数双向同步（F1 深链分享）。
  * 约定：?cat=<英文分类 slug>&q=<关键词>&style=<风格id>
- * 使用 replaceState，避免每次筛选都往历史栈塞记录导致后退键难以使用。
+ * 画廊内的筛选变化用 replaceState（避免每次输入都往历史栈塞记录）；
+ * 只有「进入 / 离开详情页」这类真正的页面跳转才用 pushState，
+ * 这样浏览器后退键的语义是「回画廊」，而不是逐字回退搜索词。
  */
 
 import type { StyleCategory } from '../types';
@@ -63,9 +65,8 @@ export function readViewState(): ViewState {
   };
 }
 
-/** 把视图状态写回 URL（省略默认值，保持链接干净；分类写英文 slug） */
-export function writeViewState(state: ViewState): void {
-  if (typeof window === 'undefined') return;
+/** 把视图状态序列化为「路径 + 查询串 + hash」（省略默认值，保持链接干净；分类写英文 slug） */
+export function buildViewHref(state: ViewState): string {
   const params = new URLSearchParams();
   const slug = categoryToSlug(state.category);
   if (slug !== null) params.set('cat', slug);
@@ -73,8 +74,32 @@ export function writeViewState(state: ViewState): void {
   if (state.styleId !== null) params.set('style', state.styleId);
 
   const query = params.toString();
-  const next = `${window.location.pathname}${query === '' ? '' : `?${query}`}${window.location.hash}`;
-  window.history.replaceState(null, '', next);
+  const pathname = typeof window === 'undefined' ? '/' : window.location.pathname;
+  const hash = typeof window === 'undefined' ? '' : window.location.hash;
+  return `${pathname}${query === '' ? '' : `?${query}`}${hash}`;
+}
+
+/** 把视图状态写回 URL（覆盖当前历史记录） */
+export function writeViewState(state: ViewState): void {
+  if (typeof window === 'undefined') return;
+  // 保留 history.state：详情页会在 state 上打标记，供「返回」判断是否需要走浏览器后退
+  window.history.replaceState(window.history.state, '', buildViewHref(state));
+}
+
+/**
+ * 压入一条新的历史记录（进入 / 离开详情页时使用）。
+ * `detail: true` 标记本页是风格详情页，关闭时优先走 history.back()，
+ * 让浏览器的后退键与站内的「返回画廊」是同一件事。
+ */
+export function pushViewState(state: ViewState, detail = false): void {
+  if (typeof window === 'undefined') return;
+  window.history.pushState(detail ? { sgDetail: true } : null, '', buildViewHref(state));
+}
+
+/** 当前历史记录是否是我们压入的详情页记录 */
+export function isDetailHistoryEntry(): boolean {
+  if (typeof window === 'undefined') return false;
+  return (window.history.state as { sgDetail?: boolean } | null)?.sgDetail === true;
 }
 
 /** 生成某个风格的分享链接（绝对地址） */

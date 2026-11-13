@@ -1,8 +1,9 @@
 /**
  * 浏览器级验证（playwright-core + 本地 chromium，无需 playwright-cli）
- * 覆盖：S1 焦点管理 / W2 色板底衬 / W3 预览 aria-hidden / W7 favicon+OG
+ * 覆盖：S1 详情页结构与返回 / W2 色板底衬 / W3 预览 aria-hidden / W7 favicon+OG
  *       F1 深链分享 / F2 Markdown 导出 / F4 定制抽屉
  *       F3 收藏与最近（localStorage + URL 纯净性）/ F5 多风格对比 / F9 DESIGN.md 导出
+ *       D 卡片封面 ↔ 详情页 ↔ 展示区一一对应、各详情页结构统一
  *       回归：稀疏分类吸顶、li 语义与标题层级、控制台错误
  *
  * 运行：NODE_PATH=<托管 workspace>/node_modules node scripts/verify-ui.cjs [baseUrl]
@@ -62,43 +63,52 @@ async function main() {
     'og:title / og:description / theme-color',
   );
 
-  /* --------------------------- F1a 深链直达 + 分类 --------------------------- */
+  /* ------------------------ F1a 深链直达详情页 ------------------------ */
   await page.goto(`${BASE}/?cat=art&style=bauhaus`, { waitUntil: 'networkidle' });
   await page.waitForTimeout(600);
   const deep = await page.evaluate(() => {
-    const dlg = document.querySelector('[role=dialog]');
-    /* 当前 tab 用 aria-current 标记，不依赖具体配色类名 */
-    const active = Array.from(document.querySelectorAll('.sticky button[aria-current="true"]'))
-      .map((b) => b.textContent.trim());
-    return { dialog: !!dlg, label: dlg && dlg.getAttribute('aria-label'), active };
+    const root = document.querySelector('[data-style-detail]');
+    const showcase = document.querySelector('[data-showcase]');
+    return {
+      styleId: root && root.getAttribute('data-style-id'),
+      h1: document.querySelector('h1') ? document.querySelector('h1').textContent.trim() : null,
+      showcaseInFrame: !!document.querySelector('[data-showcase-frame] [data-showcase]'),
+      /* 展示区骨架固定 6 段：导航 / 主视觉 / 数据条 / 特性卡片 / 行动号召 / 页脚 */
+      showcaseBlocks: showcase ? showcase.children.length : 0,
+      dialogs: document.querySelectorAll('[role=dialog]').length,
+    };
   });
   check(
-    'F1a 深链恢复分类并自动打开详情',
-    deep.dialog && deep.active.includes('艺术') && (deep.label || '').includes('包豪斯'),
+    'F1a 深链恢复分类并直达该风格详情页',
+    deep.styleId === 'bauhaus' &&
+      (deep.h1 || '').includes('包豪斯') &&
+      deep.showcaseInFrame &&
+      deep.showcaseBlocks === 6 &&
+      deep.dialogs === 0,
     JSON.stringify(deep),
   );
 
-
-  /* ------------------------------- S1 焦点陷阱 ------------------------------- */
-  const initialFocusInside = await page.evaluate(
-    () => !!document.querySelector('[role=dialog]')?.contains(document.activeElement),
+  /* ---------------------- S1 详情页结构（页面而非弹窗） ---------------------- */
+  const structure = await page.evaluate(() => {
+    const root = document.querySelector('[data-style-detail]');
+    const h1s = document.querySelectorAll('h1');
+    return {
+      root: !!root,
+      h1Count: h1s.length,
+      /* 展示框必须有边界：外框 1px 线 + 内框 1px 线，两层都在 DOM 里 */
+      frameBorder: root ? getComputedStyle(root.querySelector('[data-showcase-frame]')).borderTopWidth : null,
+      explainer: !!root && root.textContent.includes('共用同一份预览配置'),
+    };
+  });
+  check(
+    'S1a 详情页结构：唯一 h1 + 带边界展示框 + 对应关系说明',
+    structure.root && structure.h1Count === 1 && structure.frameBorder === '1px' && structure.explainer,
+    JSON.stringify(structure),
   );
-  let escaped = false;
-  for (let i = 0; i < 25; i += 1) {
-    await page.keyboard.press('Tab');
-    const inside = await page.evaluate(
-      () => !!document.querySelector('[role=dialog]')?.contains(document.activeElement),
-    );
-    if (!inside) {
-      escaped = true;
-      break;
-    }
-  }
-  check('S1a 初始聚焦在弹窗内且 Tab 不逃逸', initialFocusInside && !escaped, `初始在内=${initialFocusInside} 逃逸=${escaped}`);
 
   /* ---------------------------- W2 色板棋盘格底衬 ---------------------------- */
   const swatchBacked = await page.evaluate(() => {
-    const el = document.querySelector('[role=dialog] [style*=conic]');
+    const el = document.querySelector('[data-style-detail] [data-swatch] [style*=conic]');
     return !!el && getComputedStyle(el).backgroundImage.includes('conic');
   });
   check('W2 半透明色块有棋盘格底衬', swatchBacked, `conic 底衬=${swatchBacked}`);
@@ -115,7 +125,7 @@ async function main() {
       window.__dl.push(this.download);
     };
   });
-  await page.getByRole('button', { name: '下载', exact: true }).click();
+  await page.getByRole('button', { name: /下载 \.md/ }).click();
   await page.waitForTimeout(300);
   const single = await page.evaluate(async () => {
     const text = window.__blob ? await window.__blob.text() : '';
@@ -133,29 +143,115 @@ async function main() {
   const shareFeedback = await page.evaluate(() => document.body.textContent.includes('链接已复制'));
   check('F1b 分享按钮反馈', shareFeedback, `反馈=${shareFeedback}`);
 
-  /* -------------------- S1b Esc 关闭（深链路径无触发元素） -------------------- */
+  /* -------------------- S1b Esc 从详情页返回画廊（深链路径） -------------------- */
   await page.keyboard.press('Escape');
-  await page.waitForTimeout(400);
-  const afterEsc = await page.evaluate(() => ({ dialog: !!document.querySelector('[role=dialog]') }));
-  check('S1b Esc 关闭弹窗（深链路径）', !afterEsc.dialog, JSON.stringify(afterEsc));
-
-  /* --------------- S1c 点击打开 → Esc → 焦点归还触发按钮（真实验证） --------------- */
-  const trigger = page.locator('article').first().locator('button', { hasText: '查看提示词' });
-  await trigger.click();
-  await page.waitForTimeout(450);
-  const openedByClick = await page.evaluate(
-    () => !!document.querySelector('[role=dialog]')?.contains(document.activeElement),
-  );
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(450);
-  const restored = await page.evaluate(() => ({
-    dialog: !!document.querySelector('[role=dialog]'),
-    focusText: (document.activeElement && document.activeElement.textContent) || '',
+  await page.waitForTimeout(500);
+  const afterEsc = await page.evaluate(() => ({
+    detail: !!document.querySelector('[data-style-detail]'),
+    style: new URLSearchParams(location.search).get('style'),
+    cards: document.querySelectorAll('article').length,
   }));
   check(
-    'S1c 点击打开时焦点入弹窗、Esc 后归还触发按钮',
-    openedByClick && !restored.dialog && restored.focusText.includes('查看提示词'),
-    `打开时入内=${openedByClick} 归还后焦点文本="${restored.focusText.trim()}"`,
+    'S1b Esc 从详情页返回画廊（深链路径不离开站点）',
+    !afterEsc.detail && afterEsc.style === null && afterEsc.cards > 0,
+    JSON.stringify(afterEsc),
+  );
+
+  /* ---------- S1c 点击封面 → 对应详情页 → Esc → 焦点归还该封面 ---------- */
+  const firstCover = page.locator('article button[data-cover-id]').first();
+  const coverId = await firstCover.getAttribute('data-cover-id');
+  await firstCover.click();
+  await page.waitForTimeout(500);
+  const openedByClick = await page.evaluate(() => ({
+    id: document.querySelector('[data-style-detail]')?.getAttribute('data-style-id'),
+    style: new URLSearchParams(location.search).get('style'),
+  }));
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(500);
+  const restored = await page.evaluate(() => ({
+    detail: !!document.querySelector('[data-style-detail]'),
+    focusId: (document.activeElement && document.activeElement.getAttribute('data-cover-id')) || '',
+  }));
+  check(
+    'S1c 封面点击进入对应详情页，Esc 返回并把焦点交还封面',
+    openedByClick.id === coverId &&
+      openedByClick.style === coverId &&
+      !restored.detail &&
+      restored.focusId === coverId,
+    `封面=${coverId} 打开=${JSON.stringify(openedByClick)} 返回后=${JSON.stringify(restored)}`,
+  );
+
+  /* ------------- D1 封面 / 跳转目标 / 展示内容 三者一一对应（抽查 3 款） ------------- */
+  const samples = await page.evaluate(() => {
+    const cards = Array.from(document.querySelectorAll('article')).slice(0, 3);
+    return cards.map((card) => ({
+      id: card.querySelector('button[data-cover-id]').getAttribute('data-cover-id'),
+      nameZh: card.querySelector('h3').textContent.trim(),
+    }));
+  });
+  const pairs = [];
+  for (const sample of samples) {
+    await page.locator(`article button[data-cover-id="${sample.id}"]`).click();
+    await page.waitForTimeout(400);
+    pairs.push(
+      await page.evaluate((expected) => {
+        const root = document.querySelector('[data-style-detail]');
+        const showcase = document.querySelector('[data-showcase]');
+        return {
+          expectedId: expected.id,
+          expectedName: expected.nameZh,
+          detailId: root && root.getAttribute('data-style-id'),
+          h1: document.querySelector('h1').textContent.trim(),
+          showcaseLabel: showcase ? showcase.getAttribute('aria-label') : '',
+        };
+      }, sample),
+    );
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(420);
+  }
+  const allPaired = pairs.every(
+    (p) => p.detailId === p.expectedId && p.h1 === p.expectedName && p.showcaseLabel.includes(p.expectedName),
+  );
+  check('D1 封面 / 详情页 / 展示区三者一一对应', samples.length === 3 && allPaired, JSON.stringify(pairs));
+
+  /* --------------------- D2 各详情页结构统一（骨架签名一致） --------------------- */
+  const readSignature = () =>
+    page.evaluate(() => {
+      const root = document.querySelector('[data-style-detail]');
+      const sig = (selector) => root.querySelectorAll(selector).length;
+      return {
+        h1: sig('h1'),
+        h2: sig('h2'),
+        figure: sig('figure'),
+        frame: sig('[data-showcase-frame]'),
+        showcaseBlocks: document.querySelector('[data-showcase]').children.length,
+        asideSections: sig('aside section'),
+        swatches: sig('[data-swatch]'),
+        specs: sig('dl > div'),
+        neighborNav: sig('nav[aria-label="相邻风格"] button'),
+        promptH3: sig('.prompt-body h3'),
+        promptH4: sig('.prompt-body h4'),
+      };
+    });
+
+  await page.locator('article button[data-cover-id]').nth(0).click();
+  await page.waitForTimeout(450);
+  const sigA = await readSignature();
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(450);
+  await page.locator('article button[data-cover-id]').nth(2).click();
+  await page.waitForTimeout(450);
+  const sigB = await readSignature();
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(450);
+  check(
+    'D2 任意两款风格的详情页结构完全一致',
+    sigA.h1 === 1 &&
+      sigA.promptH3 === 1 &&
+      sigA.promptH4 === 6 &&
+      sigA.swatches === 6 &&
+      JSON.stringify(sigA) === JSON.stringify(sigB),
+    `A=${JSON.stringify(sigA)} B=${JSON.stringify(sigB)}`,
   );
 
   /* -------------------- F1d URL 参数只用英文 slug -------------------- */
@@ -308,21 +404,22 @@ async function main() {
     JSON.stringify(sticky),
   );
 
-  await page.locator('article button[aria-label*=详情]').first().click();
+  await page.locator('article button[data-cover-id]').first().click();
   await page.waitForTimeout(500);
   const list = await page.evaluate(() => {
-    const d = document.querySelector('[role=dialog]');
+    const root = document.querySelector('[data-style-detail]');
     return {
-      uls: d.querySelectorAll('ul').length,
-      nakedLi: Array.from(d.querySelectorAll('li')).filter((li) => !li.closest('ul,ol')).length,
-      h2: d.querySelectorAll('h2').length,
-      h3: d.querySelectorAll('h3').length,
-      h4: d.querySelectorAll('h4').length,
+      uls: root.querySelectorAll('ul').length,
+      nakedLi: Array.from(root.querySelectorAll('li')).filter((li) => !li.closest('ul,ol')).length,
+      h1: root.querySelectorAll('h1').length,
+      h2: root.querySelectorAll('h2').length,
+      h3: root.querySelectorAll('h3').length,
+      h4: root.querySelectorAll('h4').length,
     };
   });
   check(
-    'REG2 li 语义与标题层级（h2=1）',
-    list.nakedLi === 0 && list.uls > 0 && list.h2 === 1 && list.h3 > 0 && list.h4 > 0,
+    'REG2 详情页 li 语义与标题层级（h1 唯一，h2/h3/h4 逐级存在）',
+    list.nakedLi === 0 && list.uls > 0 && list.h1 === 1 && list.h2 >= 2 && list.h3 > 0 && list.h4 > 0,
     JSON.stringify(list),
   );
   await page.keyboard.press('Escape');
@@ -563,22 +660,21 @@ async function main() {
   const noticeGone = await page.evaluate(() => document.querySelector('div[role=status]') === null);
   check('F5e 上限提示自动消失且不残留 DOM', noticeGone, `残留=${!noticeGone}`);
 
-  /* F5f 详情弹窗内也有对比按钮；详情与对比同屏仅一个 dialog */
+  /* F5f 详情页内也有对比按钮；详情页是页面，不与任何模态层叠加 */
   await page.locator('article').nth(0).locator('button[aria-label*="详情"]').click();
   await page.waitForTimeout(500);
   const detailStack = await page.evaluate(() => {
-    const dlgs = document.querySelectorAll('[role=dialog]');
-    const d = dlgs[0];
+    const root = document.querySelector('[data-style-detail]');
     return {
-      count: dlgs.length,
-      label: d && d.getAttribute('aria-label'),
+      detail: !!root,
+      dialogs: document.querySelectorAll('[role=dialog]').length,
       hasCompareBtn:
-        !!d && Array.from(d.querySelectorAll('button')).some((b) => (b.getAttribute('aria-label') || '').includes('对比集')),
+        !!root && Array.from(root.querySelectorAll('button')).some((b) => (b.getAttribute('aria-label') || '').includes('对比集')),
     };
   });
   check(
-    'F5f 详情含对比按钮且同屏仅一个 dialog',
-    detailStack.count === 1 && detailStack.hasCompareBtn && (detailStack.label || '').includes('详情'),
+    'F5f 详情页含对比按钮且不叠加模态层',
+    detailStack.detail && detailStack.dialogs === 0 && detailStack.hasCompareBtn,
     JSON.stringify(detailStack),
   );
   await page.keyboard.press('Escape');
@@ -647,14 +743,14 @@ async function main() {
   await resetApp();
   await installDownloadSpy();
 
-  /* F9a 详情「导出 DESIGN.md」：文件名 + 六个章节 */
+  /* F9a 详情页「导出 DESIGN.md」：文件名 + 六个章节 */
   await page.locator('article').nth(0).locator('button[aria-label*="详情"]').click();
   await page.waitForTimeout(500);
   const paletteFromDom = await page.evaluate(() => {
-    const d = document.querySelector('[role=dialog]');
+    const root = document.querySelector('[data-style-detail]');
     const map = {};
     /* 色板格子上的 data-swatch 是稳定锚点，值取格子内 title 属性 */
-    d.querySelectorAll('[data-swatch]').forEach((el) => {
+    root.querySelectorAll('[data-swatch]').forEach((el) => {
       const name = el.getAttribute('data-swatch');
       const valueEl = el.querySelector('[title]');
       if (name && valueEl) map[name] = valueEl.getAttribute('title');

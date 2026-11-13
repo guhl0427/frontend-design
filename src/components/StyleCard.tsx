@@ -7,7 +7,7 @@ interface StyleCardProps {
   item: StyleItem;
   /** 数据源中的稳定序号（1 起），渲染为卡片上的等宽编号 */
   index: number;
-  /** 打开详情弹窗 */
+  /** 进入该风格的详情页 */
   onOpen: (item: StyleItem) => void;
   /** 打开定制抽屉 */
   onCustomize: (item: StyleItem) => void;
@@ -48,12 +48,17 @@ export default function StyleCard({
         而且几十种样张底色下没有任何一种叠色能同时成立。
       */}
       <div className="p-2.5">
+        {/*
+          封面即入口：点击样张进入该风格的详情页。
+          data-cover-id 让详情页返回时能精确把焦点交还给这张卡片的封面。
+        */}
         <button
           type="button"
+          data-cover-id={item.id}
           onClick={() => onOpen(item)}
           className="block w-full cursor-pointer border border-line/70 text-left transition-colors group-hover:border-line-strong"
-          aria-label={`查看「${item.nameZh}」提示词详情`}
-          title="点击查看完整提示词"
+          aria-label={`查看「${item.nameZh}」详情页`}
+          title="点击进入详情页"
         >
           <Preview item={item} />
         </button>
@@ -98,7 +103,7 @@ export default function StyleCard({
         </div>
 
         {/*
-          操作行：主动作「查看提示词」占主要宽度，「复制提示词」是全页唯一的实心块，
+          操作行：主动作「查看详情」占主要宽度，「复制提示词」是全页唯一的实心块，
           定制与对比降为纯文字按钮——四个同权重按钮会让卡片没有主次。
           文字按钮仍保留 34px 高的点击区，否则手机上只有字形本身可点。
         */}
@@ -108,7 +113,7 @@ export default function StyleCard({
             onClick={() => onOpen(item)}
             className="flex-1 cursor-pointer border border-line px-2 py-2 text-[12.5px] whitespace-nowrap text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
           >
-            查看提示词
+            查看详情
           </button>
           <button
             type="button"

@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState, type JSX } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import type { StyleItem } from './types';
 import { CATEGORIES, STYLES } from './data/styles';
 import StyleCard from './components/StyleCard';
-import PromptDetail from './components/PromptDetail';
+import StyleDetailPage from './components/StyleDetailPage';
 import Customizer from './components/Customizer';
 import CompareTray from './components/CompareTray';
 import CompareDialog from './components/CompareDialog';
@@ -15,7 +15,13 @@ import {
   designMdBundleFilename,
   downloadText,
 } from './utils/export';
-import { DEFAULT_VIEW, readViewState, writeViewState } from './utils/viewState';
+import {
+  DEFAULT_VIEW,
+  isDetailHistoryEntry,
+  pushViewState,
+  readViewState,
+  writeViewState,
+} from './utils/viewState';
 
 /** 全部分类（含「全部」） */
 const CATEGORY_FILTERS: string[] = ['全部', ...CATEGORIES];
@@ -90,6 +96,10 @@ export default function App(): JSX.Element {
   const { copied: linkCopied, copy: copyLink } = useCopy();
   const { favorites, recent, isFavorite, toggleFavorite, pushRecent, clearRecent } = useLibrary();
 
+  // 进入详情页前的画廊滚动位置与触发卡片：返回时回到原位、把焦点交还给那一次点击
+  const galleryScrollRef = useRef(0);
+  const pendingFocusRef = useRef<string | null>(null);
+
   const visibleStyles = useMemo(
     () => filterStyles(STYLES, activeFilter, keyword, favorites, recent),
     [activeFilter, keyword, favorites, recent],
@@ -97,16 +107,50 @@ export default function App(): JSX.Element {
 
   const compareItems = useMemo(() => resolveById(compareIds), [compareIds]);
 
+  /**
+   * 可分享的分类值：收藏 / 最近是本地筛选，写进 URL 会让接收者看到空列表，
+   * 因此对外一律回落为默认分类。URL 回写与进入详情页共用这一处判断，避免两处分叉。
+   */
+  const shareableCategory =
+    activeFilter === FAVORITES_FILTER || activeFilter === RECENT_FILTER ? DEFAULT_VIEW.category : activeFilter;
+
+  /** 详情页需要的编号与相邻风格：全部按数据源顺序推导，筛选状态不影响 */
+  const detailNav = useMemo(() => {
+    if (selected === null) return { index: 0, prev: null, next: null };
+    const position = STYLES.indexOf(selected);
+    return {
+      index: position + 1,
+      prev: position > 0 ? { item: STYLES[position - 1], index: position } : null,
+      next: position >= 0 && position < STYLES.length - 1 ? { item: STYLES[position + 1], index: position + 2 } : null,
+    };
+  }, [selected]);
+
   // 视图状态回写 URL（replaceState，避免污染后退栈）。
   // 收藏 / 最近属于本地数据，绝不能写入 ?cat=，否则分享出去别人看到空列表。
   useEffect(() => {
-    const isLocalFilter = activeFilter === FAVORITES_FILTER || activeFilter === RECENT_FILTER;
-    writeViewState({
-      category: isLocalFilter ? DEFAULT_VIEW.category : activeFilter,
-      keyword,
-      styleId: selected?.id ?? null,
-    });
-  }, [activeFilter, keyword, selected]);
+    writeViewState({ category: shareableCategory, keyword, styleId: selected?.id ?? null });
+  }, [shareableCategory, keyword, selected]);
+
+  // 浏览器前进 / 后退：以 URL 上的 ?style= 作为「是否在详情页」的唯一真相
+  useEffect(() => {
+    const onPopState = (): void => {
+      const view = readViewState();
+      setSelected(STYLES.find((item) => item.id === view.styleId) ?? null);
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  // 回到画廊后：恢复滚动位置，并把焦点交还给进入详情页的那张卡片封面
+  useEffect(() => {
+    if (selected !== null) return;
+    const id = pendingFocusRef.current;
+    if (id === null) return;
+    pendingFocusRef.current = null;
+    window.scrollTo({ top: galleryScrollRef.current });
+    const cover = document.querySelector<HTMLElement>(`[data-cover-id="${id}"]`);
+    cover?.focus({ preventScroll: true });
+  }, [selected]);
 
   // 轻提示自动消失
   useEffect(() => {
@@ -125,15 +169,39 @@ export default function App(): JSX.Element {
     downloadText(designMdBundleFilename(), buildDesignMdBundle(visibleStyles));
   };
 
-  /** 打开详情弹窗，同时记入「最近浏览」 */
+  /**
+   * 进入详情页：压一条历史记录（浏览器后退键 = 返回画廊），记入「最近浏览」，
+   * 并记下当前滚动位置与触发卡片，供返回时还原。
+   */
   const handleOpen = (item: StyleItem): void => {
+    galleryScrollRef.current = window.scrollY;
+    pendingFocusRef.current = item.id;
+    setSelected(item);
+    pushRecent(item.id);
+    pushViewState({ category: shareableCategory, keyword, styleId: item.id }, true);
+  };
+
+  /** 详情页内的上一款 / 下一款：同级替换，不额外堆叠历史记录 */
+  const handleNavigate = (item: StyleItem): void => {
     setSelected(item);
     pushRecent(item.id);
   };
 
-  /** 打开定制抽屉：关闭详情弹窗，避免两层模态叠加 */
-  const handleCustomize = (item: StyleItem): void => {
+  /**
+   * 返回画廊。
+   * 从卡片点进来的详情页在历史里带标记，走 history.back() 让「后退键」与「返回」是同一件事；
+   * 深链直达（?style=xxx 首次打开）没有可退的本站记录，直接切回画廊，不把用户带离站点。
+   */
+  const handleBack = useCallback((): void => {
+    if (isDetailHistoryEntry()) {
+      window.history.back();
+      return;
+    }
     setSelected(null);
+  }, []);
+
+  /** 打开定制抽屉；详情页是页面而非模态，抽屉可以叠在它上面并保留上下文 */
+  const handleCustomize = (item: StyleItem): void => {
     setCustomizing(item);
   };
 
@@ -154,10 +222,9 @@ export default function App(): JSX.Element {
     setCompareIds((prev) => prev.filter((entry) => entry !== id));
   };
 
-  /** 打开对比视图：先关闭详情弹窗，保证同一时刻只有一个模态层 */
+  /** 打开对比视图：详情页会保留在下面，关闭对比后仍在原页 */
   const handleStartCompare = (): void => {
     if (compareIds.length === 0) return;
-    setSelected(null);
     setComparing(true);
   };
 
@@ -170,6 +237,60 @@ export default function App(): JSX.Element {
   /** 工具行按钮：无边框、无底色，靠文字明度区分层级 */
   const ghostBtnClass =
     'cursor-pointer py-1 text-[13px] text-ink-faint transition-colors hover:text-ink disabled:cursor-not-allowed disabled:opacity-40';
+
+  /**
+   * 画廊与详情页共用的附加层。
+   * 抽屉 / 对比条 / 对比视图 / 轻提示在两种视图下行为一致，
+   * 因此只写一次、两处引用，避免「详情页少了一个能力」这类不一致。
+   */
+  const overlays = (
+    <>
+      {customizing !== null && <Customizer item={customizing} onClose={() => setCustomizing(null)} />}
+
+      {/* 底部对比条（对比集为空时整条不渲染） */}
+      <CompareTray
+        items={compareItems}
+        onRemove={handleRemoveCompare}
+        onClear={() => setCompareIds([])}
+        onStart={handleStartCompare}
+      />
+
+      {comparing && <CompareDialog items={compareItems} onClose={() => setComparing(false)} />}
+
+      {notice !== null && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 border border-line-strong bg-surface-raised px-3.5 py-2 text-[12.5px] text-ink"
+        >
+          {notice}
+        </div>
+      )}
+    </>
+  );
+
+  // 详情页是独立页面：不渲染画廊的页头、筛选栏与网格，避免「弹窗式」的双层信息
+  if (selected !== null) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <StyleDetailPage
+          item={selected}
+          index={detailNav.index}
+          onBack={handleBack}
+          onCustomize={handleCustomize}
+          isFavorite={isFavorite(selected.id)}
+          onToggleFavorite={toggleFavorite}
+          inCompare={compareIds.includes(selected.id)}
+          onToggleCompare={handleToggleCompare}
+          prev={detailNav.prev}
+          next={detailNav.next}
+          onNavigate={handleNavigate}
+          hasCompare={compareItems.length > 0}
+        />
+        {overlays}
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -312,7 +433,8 @@ export default function App(): JSX.Element {
       <footer className="border-t border-line">
         <div className="mx-auto max-w-[1400px] px-4 py-7 sm:px-6 lg:px-8">
           <p className="max-w-[64ch] text-[13px] leading-[1.75] text-ink-faint">
-            每张卡片的预览由该风格自身的规则实时渲染，纯 CSS 画成，不含截图与位图。
+            每张卡片的封面由该风格自身的规则实时渲染，纯 CSS 画成，不含截图与位图；
+            点击封面进入该风格的详情页，页内是同一套规则渲染的整页样张与完整提示词。
             提示词正文可直接粘贴至 Claude / Cursor / v0 / bolt 等工具；字体来自 Google Fonts。
           </p>
           <p className="mt-2 max-w-[64ch] text-[13px] leading-[1.75] text-ink-faint">
@@ -323,45 +445,8 @@ export default function App(): JSX.Element {
         </div>
       </footer>
 
-      {/* 详情弹窗 */}
-      {selected !== null && (
-        <PromptDetail
-          item={selected}
-          onClose={() => setSelected(null)}
-          onCustomize={handleCustomize}
-          isFavorite={isFavorite(selected.id)}
-          onToggleFavorite={toggleFavorite}
-          inCompare={compareIds.includes(selected.id)}
-          onToggleCompare={handleToggleCompare}
-        />
-      )}
-
-      {/* 定制抽屉 */}
-      {customizing !== null && (
-        <Customizer item={customizing} onClose={() => setCustomizing(null)} />
-      )}
-
-      {/* 底部对比条（对比集为空时整条不渲染） */}
-      <CompareTray
-        items={compareItems}
-        onRemove={handleRemoveCompare}
-        onClear={() => setCompareIds([])}
-        onStart={handleStartCompare}
-      />
-
-      {/* 对比视图 */}
-      {comparing && <CompareDialog items={compareItems} onClose={() => setComparing(false)} />}
-
-      {/* 轻提示（对比集上限等） */}
-      {notice !== null && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="fixed bottom-24 left-1/2 z-50 -translate-x-1/2 border border-line-strong bg-surface-raised px-3.5 py-2 text-[12.5px] text-ink"
-        >
-          {notice}
-        </div>
-      )}
+      {/* 详情页 / 定制抽屉 / 对比条 / 对比视图 / 轻提示：两种视图共用的附加层 */}
+      {overlays}
     </div>
   );
 }
