@@ -6,16 +6,19 @@
  *       D 卡片封面 ↔ 详情页 ↔ 展示区一一对应、各详情页结构统一
  *       回归：稀疏分类吸顶、li 语义与标题层级、控制台错误
  *
- * 运行：NODE_PATH=<托管 workspace>/node_modules node scripts/verify-ui.cjs [baseUrl]
+ * 运行：node scripts/verify-ui.cjs [baseUrl]
+ * 依赖：playwright-core（devDependencies 已声明）
+ * 浏览器解析顺序：SG_CHROME_PATH / CHROME_PATH → Playwright 自带解析 → Playwright 缓存扫描 → 系统 Chrome / Edge
  */
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-/** 解析 playwright-core：优先常规解析，其次托管工作区（无需手动设置 NODE_PATH） */
+/** 解析 playwright-core：常规解析优先，兼容以全局方式安装了 playwright 的环境 */
 function loadPlaywrightCore() {
   const candidates = [
     'playwright-core',
+    'playwright',
     path.join(os.homedir(), '.workbuddy', 'binaries', 'node', 'workspace', 'node_modules', 'playwright-core'),
   ];
   for (const candidate of candidates) {
@@ -25,7 +28,10 @@ function loadPlaywrightCore() {
       /* 尝试下一个候选路径 */
     }
   }
-  throw new Error('未找到 playwright-core，请安装到托管工作区后重试');
+  throw new Error(
+    '未找到 playwright-core。请先在仓库根目录执行 npm install（该包已声明为 devDependency），' +
+      '或临时安装：npm i -D playwright-core',
+  );
 }
 
 const { chromium } = loadPlaywrightCore();
@@ -33,10 +39,78 @@ const { chromium } = loadPlaywrightCore();
 const BASE = process.argv[2] || 'http://127.0.0.1:4173';
 /** 风格总数：合集导出的篇数断言以此为准，新增风格时必须同步 */
 const TOTAL_STYLES = 35;
-const CHROME_CANDIDATES = [
-  path.join(process.env.LOCALAPPDATA || '', 'ms-playwright', 'chromium-1045', 'chrome-win', 'chrome.exe'),
-  path.join(process.env.LOCALAPPDATA || '', 'ms-playwright', 'chromium-978106', 'chrome-win', 'chrome.exe'),
-];
+
+/** 系统已安装的 Chrome / Edge，便于无 Playwright 缓存的环境（含 CI 镜像） */
+function systemBrowsers() {
+  const programFiles = process.env.ProgramFiles || 'C:\\Program Files';
+  const programFilesX86 = process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)';
+  const localAppData = process.env.LOCALAPPDATA || '';
+  return [
+    path.join(programFiles, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    path.join(programFilesX86, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    path.join(localAppData, 'Google', 'Chrome', 'Application', 'chrome.exe'),
+    path.join(programFiles, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+    path.join(programFilesX86, 'Microsoft', 'Edge', 'Application', 'msedge.exe'),
+    '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+  ];
+}
+
+/**
+ * 逐个尝试启动，直到成功。
+ * 顺序：显式环境变量 → Playwright 自带 Chromium → 系统 Chrome / Edge → channel → 默认解析。
+ * 不扫描缓存里的历史 revision：旧内核缺少新 API（如 checkVisibility），报错信息与真实原因无关，排查成本高。
+ */
+async function launchBrowser() {
+  const candidates = [];
+  const explicit = process.env.SG_CHROME_PATH || process.env.CHROME_PATH;
+  if (explicit) {
+    candidates.push({ label: `环境变量指定：${explicit}`, options: { executablePath: explicit } });
+  }
+
+  try {
+    const bundled = chromium.executablePath();
+    if (bundled && fs.existsSync(bundled)) {
+      candidates.push({ label: 'Playwright 自带 Chromium', options: { executablePath: bundled } });
+    }
+  } catch {
+    /* 未安装 Playwright 浏览器时 executablePath 会抛错，继续降级 */
+  }
+
+  for (const systemBrowser of systemBrowsers()) {
+    if (fs.existsSync(systemBrowser)) {
+      candidates.push({ label: systemBrowser, options: { executablePath: systemBrowser } });
+    }
+  }
+
+  candidates.push({ label: 'channel=chrome', options: { channel: 'chrome' } });
+  candidates.push({ label: 'channel=msedge', options: { channel: 'msedge' } });
+  candidates.push({ label: 'Playwright 默认 Chromium', options: {} });
+
+  const failures = [];
+  for (const candidate of candidates) {
+    try {
+      const browser = await chromium.launch({ args: ['--no-sandbox'], ...candidate.options });
+      if (candidate.options.executablePath || candidate.options.channel) {
+        console.log(`使用浏览器：${candidate.label}`);
+      }
+      return browser;
+    } catch (error) {
+      failures.push(`${candidate.label} → ${String(error.message).split('\n')[0]}`);
+    }
+  }
+
+  throw new Error(
+    '未找到可用浏览器。任选其一后重试：\n' +
+      '  1) npx playwright install chromium\n' +
+      '  2) 安装本机 Chrome / Edge\n' +
+      '  3) SG_CHROME_PATH=/path/to/chrome node scripts/verify-ui.cjs\n' +
+      `已尝试：\n  ${failures.join('\n  ')}`,
+  );
+}
 
 const results = [];
 const pass = (name, detail) => results.push({ ok: true, name, detail });
@@ -44,9 +118,7 @@ const fail = (name, detail) => results.push({ ok: false, name, detail });
 const check = (name, condition, detail) => (condition ? pass(name, detail) : fail(name, detail));
 
 async function main() {
-  const chromePath = CHROME_CANDIDATES.find((p) => p && fs.existsSync(p));
-  if (!chromePath) throw new Error('未找到本地 chromium，请检查 ms-playwright 缓存');
-  const browser = await chromium.launch({ executablePath: chromePath, args: ['--no-sandbox'] });
+  const browser = await launchBrowser();
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   page.on('console', (m) => {
