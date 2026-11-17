@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import type { StyleItem } from '../types';
+import type { StyleItem } from '@/types';
 
 interface CompareTrayProps {
   /** 已加入对比集的风格（按加入顺序） */

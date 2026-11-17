@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { copyToClipboard } from '../utils/clipboard';
+import { copyToClipboard } from '@/utils/clipboard';
 
 interface UseCopyResult {
   copied: boolean;

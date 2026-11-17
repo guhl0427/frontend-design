@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState, type JSX } from 'react';
-import type { CustomizeOptions, StyleItem } from '../types';
-import { FONT_OPTIONS } from '../data/fonts';
-import { useCopy } from '../hooks/useCopy';
-import { useFocusTrap } from '../hooks/useFocusTrap';
-import { DEFAULT_CUSTOMIZE, composePrompt, derivePreview } from '../utils/promptComposer';
-import { downloadText, singleFilename } from '../utils/export';
+import type { CustomizeOptions, StyleItem } from '@/types';
+import { FONT_OPTIONS } from '@/data/fonts';
+import { useCopy } from '@/hooks/useCopy';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { DEFAULT_CUSTOMIZE, composePrompt, derivePreview } from '@/utils/promptComposer';
+import { downloadText, singleFilename } from '@/utils/export';
 import Preview from './Preview';
 
 interface CustomizerProps {

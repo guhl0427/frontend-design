@@ -1,27 +1,27 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from 'react';
 import type { StyleItem } from './types';
-import { CATEGORIES, STYLES } from './data/styles';
-import StyleCard from './components/StyleCard';
-import StyleDetailPage from './components/StyleDetailPage';
-import Customizer from './components/Customizer';
-import CompareTray from './components/CompareTray';
-import CompareDialog from './components/CompareDialog';
-import { useCopy } from './hooks/useCopy';
-import { useLibrary } from './hooks/useLibrary';
+import { CATEGORIES, STYLES } from '@/data/styles';
+import StyleCard from '@/components/StyleCard';
+import StyleDetailPage from '@/components/StyleDetailPage';
+import Customizer from '@/components/Customizer';
+import CompareTray from '@/components/CompareTray';
+import CompareDialog from '@/components/CompareDialog';
+import { useCopy } from '@/hooks/useCopy';
+import { useLibrary } from '@/hooks/useLibrary';
 import {
   buildBundleMarkdown,
   buildDesignMdBundle,
   bundleFilename,
   designMdBundleFilename,
   downloadText,
-} from './utils/export';
+} from '@/utils/export';
 import {
   DEFAULT_VIEW,
   isDetailHistoryEntry,
   pushViewState,
   readViewState,
   writeViewState,
-} from './utils/viewState';
+} from '@/utils/viewState';
 
 /** 全部分类（含「全部」） */
 const CATEGORY_FILTERS: string[] = ['全部', ...CATEGORIES];

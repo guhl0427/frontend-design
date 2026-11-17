@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import type { ButtonVariant, CardVariant, PreviewConfig, StylePalette } from '../types';
+import type { ButtonVariant, CardVariant, PreviewConfig, StylePalette } from '@/types';
 
 /*
   风格变体原语：按钮与面板的「外观」只在这里定义一次。

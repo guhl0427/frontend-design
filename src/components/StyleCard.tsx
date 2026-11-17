@@ -1,6 +1,6 @@
 import type { JSX } from 'react';
-import type { StyleItem } from '../types';
-import { useCopy } from '../hooks/useCopy';
+import type { StyleItem } from '@/types';
+import { useCopy } from '@/hooks/useCopy';
 import Preview from './Preview';
 
 interface StyleCardProps {

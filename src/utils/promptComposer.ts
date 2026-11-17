@@ -1,4 +1,4 @@
-import type { CustomizeOptions, PreviewConfig, StyleItem } from '../types';
+import type { CustomizeOptions, PreviewConfig, StyleItem } from '@/types';
 
 /** 定制器默认值：居中档位 + 空品牌占位，等于「原样使用该风格」 */
 export const DEFAULT_CUSTOMIZE: CustomizeOptions = {

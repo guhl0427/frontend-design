@@ -1,4 +1,4 @@
-import type { StyleCategory, StyleItem } from '../types';
+import type { StyleCategory, StyleItem } from '@/types';
 
 /** 全部分类（固定顺序，供筛选 chip 使用） */
 export const CATEGORIES: StyleCategory[] = [

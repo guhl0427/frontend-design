@@ -1,5 +1,5 @@
 import type { CSSProperties, JSX } from 'react';
-import type { StyleItem, StylePalette } from '../types';
+import type { StyleItem, StylePalette } from '@/types';
 import { stylePanel, stylePrimaryButton, styleSecondaryButton } from './stylePrimitives';
 
 interface StyleShowcaseProps {
