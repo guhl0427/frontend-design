@@ -1,14 +1,14 @@
 import { useEffect, useMemo, type JSX } from 'react';
-import type { StyleItem, StylePalette } from '../types';
-import { useCopy } from '../hooks/useCopy';
+import type { StyleItem, StylePalette } from '@/types';
+import { useCopy } from '@/hooks/useCopy';
 import {
   buildDesignMd,
   buildSingleMarkdown,
   designMdFilename,
   downloadText,
   singleFilename,
-} from '../utils/export';
-import { buildShareLink } from '../utils/viewState';
+} from '@/utils/export';
+import { buildShareLink } from '@/utils/viewState';
 import StyleShowcase from './StyleShowcase';
 
 /** 相邻风格：按数据源顺序取上一款 / 下一款 */

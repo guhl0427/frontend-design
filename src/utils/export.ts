@@ -1,4 +1,4 @@
-import type { StyleItem } from '../types';
+import type { StyleItem } from '@/types';
 import { splitPrompt, type PromptSection } from './promptSections';
 
 /** 生成用于文件名的日期片段：20260930 */

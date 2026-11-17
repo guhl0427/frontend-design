@@ -1,5 +1,5 @@
 import type { CSSProperties, JSX } from 'react';
-import type { PreviewConfig, StyleItem } from '../types';
+import type { PreviewConfig, StyleItem } from '@/types';
 import { stylePanel, stylePrimaryButton, styleSecondaryButton } from './stylePrimitives';
 
 interface PreviewProps {

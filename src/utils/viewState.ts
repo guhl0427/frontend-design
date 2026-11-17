@@ -6,7 +6,7 @@
  * 这样浏览器后退键的语义是「回画廊」，而不是逐字回退搜索词。
  */
 
-import type { StyleCategory } from '../types';
+import type { StyleCategory } from '@/types';
 
 export interface ViewState {
   category: string;

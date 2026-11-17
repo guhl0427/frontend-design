@@ -1,7 +1,7 @@
 import { useEffect, useMemo, type JSX } from 'react';
-import type { StyleItem } from '../types';
-import { useFocusTrap } from '../hooks/useFocusTrap';
-import { splitPrompt } from '../utils/promptSections';
+import type { StyleItem } from '@/types';
+import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { splitPrompt } from '@/utils/promptSections';
 import Preview from './Preview';
 
 interface CompareDialogProps {
