@@ -295,18 +295,12 @@ export default function App(): JSX.Element {
   return (
     <div className="flex min-h-screen flex-col">
       {/*
-        页头：压到两行以内，让第一排卡片完整落在首屏。
-        原先四行的产品功能说明段已下沉到页脚——它解释的是「这个页面是做什么的」，
-        属于首屏不需要的内容；画廊首屏该让作品先出现。
+        页头只留标题。风格数量在筛选栏的计数里（当前 / 总数），
+        「纯 CSS 渲染」「可直接粘贴到某工具」这类说明由页面本身承担——作品比说明先出现。
       */}
       <header className="border-b border-line">
-        <div className="mx-auto max-w-[1400px] px-4 pt-9 pb-5 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1.5">
-            <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-ink">前端风格提示词画廊</h1>
-            <p className="font-mono text-[11px] tracking-[0.14em] text-ink-faint">
-              {STYLES.length} 种风格 · 各含 7 段提示词 · 纯 CSS 渲染
-            </p>
-          </div>
+        <div className="mx-auto max-w-[1400px] px-4 pt-8 pb-4 sm:px-6 lg:px-8">
+          <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-ink">前端风格提示词画廊</h1>
         </div>
       </header>
 
@@ -354,7 +348,8 @@ export default function App(): JSX.Element {
           </div>
 
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line py-2.5">
-            <div className="relative min-w-0 flex-1 sm:max-w-[20rem]">
+            {/* 小屏下搜索独占一行：与右侧动作挤在同一行会把输入框压到只剩几个字符宽 */}
+            <div className="relative min-w-0 basis-full flex-1 sm:basis-auto sm:max-w-[20rem]">
               <span className="pointer-events-none absolute top-1/2 left-0 -translate-y-1/2 font-mono text-[13px] leading-none text-ink-faint">
                 /
               </span>
@@ -369,30 +364,40 @@ export default function App(): JSX.Element {
             <span className="font-mono text-[11px] tracking-[0.08em] whitespace-nowrap text-ink-faint">
               {visibleStyles.length} / {STYLES.length}
             </span>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 sm:ml-auto">
+            <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1 sm:ml-auto">
               {activeFilter === RECENT_FILTER && recent.length > 0 && (
-                <button type="button" onClick={clearRecent} className={ghostBtnClass}>
-                  清空浏览记录
-                </button>
+                <>
+                  <button type="button" onClick={clearRecent} className={ghostBtnClass}>
+                    清空浏览记录
+                  </button>
+                  <span aria-hidden="true" className="h-3 w-px shrink-0 bg-line-strong" />
+                </>
               )}
-              <button type="button" onClick={() => void copyLink(window.location.href)} className={ghostBtnClass}>
-                {linkCopied ? '链接已复制 ✓' : '分享本页'}
+              <button
+                type="button"
+                onClick={() => void copyLink(window.location.href)}
+                aria-label="复制本页链接"
+                className={ghostBtnClass}
+              >
+                {linkCopied ? '链接已复制 ✓' : '分享'}
               </button>
               <button
                 type="button"
                 onClick={handleExportBundle}
                 disabled={visibleStyles.length === 0}
+                aria-label={`导出当前 ${visibleStyles.length} 条提示词为 Markdown`}
                 className={ghostBtnClass}
               >
-                导出 {visibleStyles.length} 条 .md
+                导出 .md
               </button>
               <button
                 type="button"
                 onClick={handleExportDesignBundle}
                 disabled={visibleStyles.length === 0}
+                aria-label={`导出当前 ${visibleStyles.length} 条为 DESIGN.md 合集`}
                 className={ghostBtnClass}
               >
-                导出 DESIGN.md 合集
+                导出 DESIGN.md
               </button>
             </div>
           </div>
@@ -429,21 +434,7 @@ export default function App(): JSX.Element {
         )}
       </main>
 
-      {/* 页脚：承接从页头移出的产品说明，行宽限制在 64ch 以内 */}
-      <footer className="border-t border-line">
-        <div className="mx-auto max-w-[1400px] px-4 py-7 sm:px-6 lg:px-8">
-          <p className="max-w-[64ch] text-[13px] leading-[1.75] text-ink-faint">
-            每张卡片的封面由该风格自身的规则实时渲染，纯 CSS 画成，不含截图与位图；
-            点击封面进入该风格的详情页，页内是同一套规则渲染的整页样张与完整提示词。
-            提示词正文可直接粘贴至 Claude / Cursor / v0 / bolt 等工具；字体来自 Google Fonts。
-          </p>
-          <p className="mt-2 max-w-[64ch] text-[13px] leading-[1.75] text-ink-faint">
-            支持深链分享、Markdown 与 DESIGN.md 导出、三档参数定制、多风格对比。链接参数
-            <code className="mx-1 font-mono text-ink-muted">?cat=modern &amp; style=bauhaus</code>
-            可直接分享（分类使用英文 slug）。
-          </p>
-        </div>
-      </footer>
+      {/* 页脚已删除：原先那两段是功能清单式自述，页面本身已经把这些能力演示完了 */}
 
       {/* 详情页 / 定制抽屉 / 对比条 / 对比视图 / 轻提示：两种视图共用的附加层 */}
       {overlays}

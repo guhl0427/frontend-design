@@ -36,9 +36,9 @@ const TUNING_META = [
 
 /** 段落开关的展示元信息 */
 const SECTION_META = [
-  { key: 'palette' as const, label: 'HSL 色板', hint: '关闭后不输出具体色值' },
-  { key: 'components' as const, label: '组件规则', hint: '按钮 / 卡片 / 徽章样式' },
-  { key: 'bans' as const, label: '反模式禁令', hint: 'AI 最容易犯错的负面清单' },
+  { key: 'palette' as const, label: 'HSL 色板', hint: '不输出色值' },
+  { key: 'components' as const, label: '组件规则', hint: '按钮 / 卡片 / 徽章' },
+  { key: 'bans' as const, label: '反模式禁令', hint: 'AI 常犯错误清单' },
 ];
 
 /** 抽屉参数面板：调三档参数 + 填品牌占位符，实时预览并生成定制提示词 */
@@ -136,9 +136,7 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
                 asymmetric={derived.asymmetric}
               />
             </div>
-            <p className="mt-2 text-[13px] leading-[1.7] text-ink-faint">
-              预览真实反映强调色、圆角、密度与布局错位；动效强度只写入提示词文本（静态预览无法体现）。
-            </p>
+            <p className="mt-2 text-[12px] text-ink-faint">动效强度只写进提示词，静态预览不体现。</p>
           </section>
 
           {/* 三档参数 */}
