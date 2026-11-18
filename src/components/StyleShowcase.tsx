@@ -62,6 +62,8 @@ export default function StyleShowcase({ item }: StyleShowcaseProps): JSX.Element
     <div
       role="img"
       data-showcase
+      /* 供结构断言核对「框内样张属于哪一款风格」——同源关系靠数据属性证明，不靠页面上的说明文字 */
+      data-showcase-style={item.id}
       aria-label={`「${item.nameZh}」完整页面风格展示：顶部导航、主视觉、数据条、三张特性卡片、行动号召与页脚，全部由该风格的色板、字体与组件规则纯 CSS 渲染。`}
       style={{
         backgroundColor: p.bg,

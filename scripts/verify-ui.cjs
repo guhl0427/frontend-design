@@ -164,17 +164,24 @@ async function main() {
   const structure = await page.evaluate(() => {
     const root = document.querySelector('[data-style-detail]');
     const h1s = document.querySelectorAll('h1');
+    const showcase = document.querySelector('[data-showcase-frame] [data-showcase]');
     return {
       root: !!root,
       h1Count: h1s.length,
       /* 展示框必须有边界：外框 1px 线 + 内框 1px 线，两层都在 DOM 里 */
       frameBorder: root ? getComputedStyle(root.querySelector('[data-showcase-frame]')).borderTopWidth : null,
-      explainer: !!root && root.textContent.includes('共用同一份预览配置'),
+      /* 框内样张与详情页属于同一款风格：用数据属性核对，不依赖页面上的解释性文案 */
+      detailId: root ? root.getAttribute('data-style-id') : null,
+      showcaseStyle: showcase ? showcase.getAttribute('data-showcase-style') : null,
     };
   });
   check(
-    'S1a 详情页结构：唯一 h1 + 带边界展示框 + 对应关系说明',
-    structure.root && structure.h1Count === 1 && structure.frameBorder === '1px' && structure.explainer,
+    'S1a 详情页结构：唯一 h1 + 带边界展示框 + 样张同源',
+    structure.root &&
+      structure.h1Count === 1 &&
+      structure.frameBorder === '1px' &&
+      structure.detailId !== null &&
+      structure.showcaseStyle === structure.detailId,
     JSON.stringify(structure),
   );
 
@@ -350,7 +357,7 @@ async function main() {
   /* ------------------------- F2b 导出当前筛选结果为合集 ------------------------- */
   await page.locator('.sticky button', { hasText: '全部' }).first().click();
   await page.waitForTimeout(400);
-  await page.getByRole('button', { name: /导出 \d+ 条/ }).click();
+  await page.getByRole('button', { name: /导出当前 \d+ 条提示词为 Markdown/ }).click();
   await page.waitForTimeout(400);
   const bundle = await page.evaluate(async () => {
     const text = window.__blob ? await window.__blob.text() : '';
@@ -668,7 +675,7 @@ async function main() {
   check(
     'F5a 卡片对比按钮加入对比集并出现对比条',
     cmpBefore.text === '对比' &&
-      cmpAfter.text === '已加入对比' &&
+      cmpAfter.text === '已加入' &&
       cmpAfter.pressed === 'true' &&
       trayText !== null &&
       trayText.includes(firstName),
@@ -876,7 +883,7 @@ async function main() {
     window.__dl = [];
     window.__blob = null;
   });
-  await page.getByRole('button', { name: /导出 DESIGN\.md 合集/ }).click();
+  await page.getByRole('button', { name: /导出当前 \d+ 条为 DESIGN\.md 合集/ }).click();
   await page.waitForTimeout(450);
   const designBundle = await page.evaluate(async () => {
     const text = window.__blob ? await window.__blob.text() : '';

@@ -50,15 +50,16 @@ export default function StyleCard({
       <div className="p-2.5">
         {/*
           封面即入口：点击样张进入该风格的详情页。
+          卡片上没有「查看详情」按钮，可发现性由 hover 兜住——样张外框转琥珀、编号转琥珀，
+          琥珀是全站唯一的「被指向」信号。环在样张之外，不压在样张上看不清。
           data-cover-id 让详情页返回时能精确把焦点交还给这张卡片的封面。
         */}
         <button
           type="button"
           data-cover-id={item.id}
           onClick={() => onOpen(item)}
-          className="block w-full cursor-pointer border border-line/70 text-left transition-colors group-hover:border-line-strong"
+          className="block w-full cursor-pointer border border-line/70 text-left transition-colors hover:border-brand"
           aria-label={`查看「${item.nameZh}」详情页`}
-          title="点击进入详情页"
         >
           <Preview item={item} />
         </button>
@@ -72,7 +73,19 @@ export default function StyleCard({
             <span className="shrink-0 font-mono text-[10.5px] tracking-[0.06em] text-ink-faint tabular-nums transition-colors group-hover:text-brand">
               {String(index).padStart(2, '0')}
             </span>
-            <h3 className="truncate text-[15px] font-semibold tracking-[-0.005em] text-ink">{item.nameZh}</h3>
+            <h3 className="truncate text-[15px] font-semibold tracking-[-0.005em] text-ink">
+              {/*
+                标题也是入口：卡片上没有「查看详情」按钮之后，需要一个不靠解释文字的「可点」信号。
+                hover 出琥珀下划线是链接的通用语言，比在样张上叠角标干净，也不破坏文字选择。
+              */}
+              <button
+                type="button"
+                onClick={() => onOpen(item)}
+                className="cursor-pointer text-left underline-offset-4 hover:underline hover:decoration-brand/70"
+              >
+                {item.nameZh}
+              </button>
+            </h3>
           </div>
           <button
             type="button"
@@ -94,45 +107,12 @@ export default function StyleCard({
 
         <p className="mt-2.5 line-clamp-2 text-[12.5px] leading-[1.7] text-ink-muted">{item.summary}</p>
 
-        <div className="mt-2.5 flex flex-wrap gap-x-2.5 gap-y-1">
-          {item.tags.map((tag) => (
-            <span key={tag} className="font-mono text-[10.5px] text-ink-faint">
-              #{tag}
-            </span>
-          ))}
-        </div>
-
         {/*
-          操作行：主动作「查看详情」占主要宽度，「复制提示词」是全页唯一的实心块，
-          定制与对比降为纯文字按钮——四个同权重按钮会让卡片没有主次。
+          操作行：不再放「查看详情」——封面本身就是入口，重复一个占半行宽度的按钮只是噪声。
+          「复制提示词」是全页唯一的实心块，定制与对比降为纯文字按钮，靠明度分主次。
           文字按钮仍保留 34px 高的点击区，否则手机上只有字形本身可点。
         */}
         <div className="mt-auto flex items-stretch gap-1.5 pt-4">
-          <button
-            type="button"
-            onClick={() => onOpen(item)}
-            className="flex-1 cursor-pointer border border-line px-2 py-2 text-[12.5px] whitespace-nowrap text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
-          >
-            查看详情
-          </button>
-          <button
-            type="button"
-            onClick={() => onCustomize(item)}
-            className="min-h-[34px] shrink-0 cursor-pointer px-2.5 py-2 text-[12.5px] whitespace-nowrap text-ink-faint transition-colors hover:bg-white/5 hover:text-ink"
-          >
-            定制
-          </button>
-          <button
-            type="button"
-            onClick={() => onToggleCompare(item)}
-            aria-pressed={inCompare}
-            aria-label={inCompare ? `将「${item.nameZh}」移出对比集` : `将「${item.nameZh}」加入对比集`}
-            className={`min-h-[34px] shrink-0 cursor-pointer px-2.5 py-2 text-[12.5px] whitespace-nowrap transition-colors hover:bg-white/5 ${
-              inCompare ? 'text-brand' : 'text-ink-faint hover:text-ink'
-            }`}
-          >
-            {inCompare ? '已加入对比' : '对比'}
-          </button>
           <button
             type="button"
             onClick={() => void copy(item.prompt)}
@@ -141,6 +121,24 @@ export default function StyleCard({
             }`}
           >
             {copied ? '已复制 ✓' : '复制提示词'}
+          </button>
+          <button
+            type="button"
+            onClick={() => onCustomize(item)}
+            className="min-h-[34px] shrink-0 cursor-pointer px-2.5 py-2 text-[12.5px] whitespace-nowrap text-ink-faint transition-colors hover:bg-surface-hover hover:text-ink"
+          >
+            定制
+          </button>
+          <button
+            type="button"
+            onClick={() => onToggleCompare(item)}
+            aria-pressed={inCompare}
+            aria-label={inCompare ? `将「${item.nameZh}」移出对比集` : `将「${item.nameZh}」加入对比集`}
+            className={`min-h-[34px] shrink-0 cursor-pointer px-2.5 py-2 text-[12.5px] whitespace-nowrap transition-colors hover:bg-surface-hover ${
+              inCompare ? 'text-brand' : 'text-ink-faint hover:text-ink'
+            }`}
+          >
+            {inCompare ? '已加入' : '对比'}
           </button>
         </div>
 

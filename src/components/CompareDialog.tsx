@@ -60,10 +60,7 @@ export default function CompareDialog({ items, onClose }: CompareDialogProps): J
       >
         {/* 头部 */}
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line px-5 py-4">
-          <div>
-            <h2 className="text-[19px] font-semibold tracking-[-0.015em] text-ink">风格对比</h2>
-            <p className="mt-0.5 text-[12.5px] text-ink-muted">共 {items.length} 款 · 段落按第一款风格的顺序对齐</p>
-          </div>
+          <h2 className="text-[19px] font-semibold tracking-[-0.015em] text-ink">风格对比</h2>
           <button
             type="button"
             onClick={onClose}

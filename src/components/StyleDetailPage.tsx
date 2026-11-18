@@ -168,7 +168,7 @@ export default function StyleDetailPage({
 
   return (
     <div data-style-detail data-style-id={item.id} className="min-h-screen">
-      {/* 顶部操作条：返回 + 层级路径 + 动作 */}
+      {/* 顶部操作条：返回 + 动作。面包屑已删除——标题块里已有编号 / 分类 / 英文名，重复一遍只是噪声 */}
       <div className="sticky top-0 z-40 border-b border-line bg-surface/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6 lg:px-8">
           <button
@@ -179,16 +179,6 @@ export default function StyleDetailPage({
             <span aria-hidden="true">←</span>
             返回画廊
           </button>
-          <span aria-hidden="true" className="h-3 w-px shrink-0 bg-line-strong" />
-          <p className="flex min-w-0 items-baseline gap-2 font-mono text-[11px] tracking-[0.06em] text-ink-faint">
-            <span className="hidden sm:inline">风格画廊</span>
-            <span aria-hidden="true" className="hidden sm:inline">
-              /
-            </span>
-            <span>{item.category}</span>
-            <span aria-hidden="true">/</span>
-            <span className="truncate text-ink-muted">{item.nameZh}</span>
-          </p>
 
           <div className="ml-auto flex flex-wrap items-center gap-x-3 gap-y-2">
             <button
@@ -219,7 +209,7 @@ export default function StyleDetailPage({
               aria-label={inCompare ? `将「${item.nameZh}」移出对比集` : `将「${item.nameZh}」加入对比集`}
               className={`cursor-pointer py-1 text-[12.5px] transition-colors ${inCompare ? 'text-brand' : 'text-ink-faint hover:text-ink'}`}
             >
-              {inCompare ? '已加入对比' : '对比'}
+              {inCompare ? '已加入' : '对比'}
             </button>
             <button type="button" onClick={() => void copyLink(buildShareLink(item.id))} className={textActionClass}>
               {linkCopied ? '链接已复制 ✓' : '分享'}
@@ -242,32 +232,18 @@ export default function StyleDetailPage({
             {item.nameZh}
           </h1>
           <p className="mt-3 max-w-[62ch] text-[13.5px] leading-[1.8] text-ink-muted">{item.summary}</p>
-          <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1">
-            {item.tags.map((tag) => (
-              <span key={tag} className="font-mono text-[10.5px] text-ink-faint">
-                #{tag}
-              </span>
-            ))}
-          </div>
         </header>
 
         {/* 带边界的展示框：框内是该风格的完整页面样张 */}
         <figure className="mt-8">
-          <figcaption className="mb-2.5 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+          <figcaption className="mb-2.5">
             <h2 className="font-mono text-[10.5px] tracking-[0.16em] text-ink-faint">完整页面展示</h2>
-            <span className="font-mono text-[10.5px] tracking-[0.08em] text-ink-faint">
-              nav / hero / stats / features / cta / footer
-            </span>
           </figcaption>
           <div data-showcase-frame className="border border-line bg-surface-raised p-2.5 sm:p-3.5">
             <div className="overflow-hidden border border-line-strong/60">
               <StyleShowcase item={item} />
             </div>
           </div>
-          <p className="mt-2.5 max-w-[68ch] text-[12.5px] leading-[1.75] text-ink-faint">
-            展示框内的页面与编号 {indexLabel} 的卡片封面共用同一份预览配置（色板 / 字体 / 圆角 / 描边 / 组件变体），
-            因此封面、进入的详情页与框内样张始终指向同一款风格。
-          </p>
         </figure>
 
         {/* 提示词 + 规格侧栏 */}
@@ -275,7 +251,7 @@ export default function StyleDetailPage({
           <section aria-labelledby="prompt-heading">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
               <h2 id="prompt-heading" className="font-mono text-[10.5px] tracking-[0.16em] text-ink-faint">
-                完整提示词 · 7 段
+                完整提示词
               </h2>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 <button
@@ -301,7 +277,7 @@ export default function StyleDetailPage({
             {/* 色板可视化 */}
             <section aria-labelledby="palette-heading">
               <h2 id="palette-heading" className="mb-3 font-mono text-[10.5px] tracking-[0.16em] text-ink-faint">
-                预览色板
+                色板
               </h2>
               {/*
                 规格列表而非色块矩阵：色值是这一屏的主要数据，必须完整可读；
@@ -331,7 +307,7 @@ export default function StyleDetailPage({
             {/* 字体信息 */}
             <section aria-labelledby="font-heading">
               <h2 id="font-heading" className="mb-3 font-mono text-[10.5px] tracking-[0.16em] text-ink-faint">
-                预览字体
+                字体
               </h2>
               <div className="flex flex-wrap gap-2">
                 <span
