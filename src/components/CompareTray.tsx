@@ -26,7 +26,7 @@ export default function CompareTray({ items, onRemove, onClear, onStart }: Compa
           {items.map((item) => (
             <span
               key={item.id}
-              className="flex items-center gap-1.5 border border-line bg-white/[0.03] py-1 pr-1.5 pl-2.5 text-[12.5px] text-ink"
+              className="flex items-center gap-1.5 border border-line bg-surface-subtle py-1 pr-1.5 pl-2.5 text-[12.5px] text-ink"
             >
               {item.nameZh}
               <button
@@ -44,7 +44,7 @@ export default function CompareTray({ items, onRemove, onClear, onStart }: Compa
         <button
           type="button"
           onClick={onStart}
-          className="cursor-pointer bg-ink px-4 py-1.5 text-[13px] font-medium text-surface transition-colors hover:bg-brand"
+          className="cursor-pointer bg-ink px-4 py-1.5 text-[13px] font-medium text-on-ink transition-colors hover:bg-brand hover:text-on-brand"
         >
           开始对比（{items.length}）
         </button>

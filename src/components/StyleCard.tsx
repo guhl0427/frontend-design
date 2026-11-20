@@ -117,7 +117,7 @@ export default function StyleCard({
             type="button"
             onClick={() => void copy(item.prompt)}
             className={`flex-1 cursor-pointer px-2 py-2 text-[12.5px] font-medium whitespace-nowrap transition-colors ${
-              copied ? 'bg-brand text-surface' : 'bg-ink text-surface hover:bg-brand'
+              copied ? 'bg-brand text-on-brand' : 'bg-ink text-on-ink hover:bg-brand hover:text-on-brand'
             }`}
           >
             {copied ? '已复制 ✓' : '复制提示词'}

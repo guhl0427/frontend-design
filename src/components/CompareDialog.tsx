@@ -46,7 +46,7 @@ export default function CompareDialog({ items, onClose }: CompareDialogProps): J
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 backdrop-blur-xs sm:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-3 backdrop-blur-xs sm:p-6"
       onClick={onClose}
       role="dialog"
       aria-modal="true"

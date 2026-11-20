@@ -4,7 +4,7 @@
 
 - **基线版本**：`main` @ `586e68c`（feat(styles): 风格扩充至 35 条并新增 3 组预览变体）
 - **文档校核时间**：2026-11-13
-- **当前状态**：`node scripts/verify-styles.mjs` 零错误零警告；`npm run build` 通过（34 modules）；`verify:ui` 45 项全绿
+- **当前状态**：`node scripts/verify-styles.mjs` 零错误零警告；`npm run build` 通过（36 modules）；`verify:ui` 54 项全绿（含 9 项 dark/light 主题断言）
 - **内容规模**：35 条风格 / 9 个分类 / 10 种按钮变体 / 11 种卡片变体 / 27 个字体族
 
 ---
@@ -16,7 +16,7 @@
 1. 一套**可渲染的预览配置**（色板 / 字体 / 圆角 / 边框 / 阴影 / 组件变体）；
 2. 一段**七段结构化的提示词正文**（角色定位 / 设计理念 / 字体方案 / HSL 色板 / 间距与圆角 / 组件规则 / 反模式禁令）。
 
-在这两者之上提供六类能力：分类与关键词筛选、**页面级详情（封面进入 → 带边界的整页样张 + 完整提示词）**、一键复制、参数定制、多风格对比、Markdown 与 DESIGN.md 导出，以及 `?cat=&q=&style=` 深链分享。
+在这两者之上提供分类与关键词筛选、**页面级详情（封面进入 → 带边界的整页样张 + 完整提示词）**、一键复制、参数定制、多风格对比、Markdown 与 DESIGN.md 导出、`?cat=&q=&style=` 深链分享，以及可持久化的 dark/light 外观切换。
 
 它不是模板市场，也不是 CSS 框架：**预览是提示词的可视化凭证**，用户真正带走的是提示词文本。
 
@@ -38,8 +38,8 @@
 | 项 | 值 |
 | --- | --- |
 | 技术栈 | Vite 8.3.7 · React 19.3 · TypeScript 6.0（strict） · Tailwind CSS 4.3（CSS-first） |
-| 源码规模 | 23 个文件，约 3.2k 行（不含 2.2k 行风格数据） |
-| 构建产物 | `dist/assets/*.js` 365.26 kB（gzip 112.05 kB）· `.css` 29.82 kB（gzip 6.22 kB） |
+| 源码规模 | 25 个文件，约 3.4k 行（不含 2.2k 行风格数据） |
+| 构建产物 | `dist/assets/*.js` 364.15 kB（gzip 111.72 kB）· `.css` 31.27 kB（gzip 6.52 kB） |
 | 开发 | `npm run dev` → `http://localhost:5173` |
 | 校验 | `npm run verify`（数据校验 + 类型检查 + 生产构建） |
 | 浏览器门槛 | Chrome 111+ / Safari 16.4+ / Firefox 128+（Tailwind 4 依赖 `color-mix()`） |
@@ -82,9 +82,9 @@
 | 段落（Section） | 提示词中以 `#` / `##` 开头的章节 | `PromptSection`，`src/utils/promptSections.ts` |
 | 定制（Customize） | 在提示词基底上叠加三档参数与品牌占位符，生成新提示词 | `src/utils/promptComposer.ts` |
 | 对比集（Compare set） | 用户选中的最多 3 条风格，用于并排对照 | `App.tsx` 的 `compareIds` |
-| 校样台（Proofing table） | 外层视觉方向：石墨底 + 细线 + 等宽编号，彩色只归预览 | `src/index.css` 的 `@theme` |
+| 校样台（Proofing table） | 外层视觉方向：dark 石墨 / light 暖白纸面 + 细线 + 等宽编号，彩色只归预览 | `src/index.css` 的 `@theme` 与 `html.light` 覆盖 |
 | DESIGN.md | 对齐 awesome-design-md 事实标准的单文件设计规范导出格式 | `buildDesignMd`，`src/utils/export.ts` |
-| 本地数据 | 收藏 / 最近浏览，只存 localStorage，绝不写 URL | `src/hooks/useLibrary.ts` |
+| 本地数据与偏好 | 收藏 / 最近浏览 / dark-light 主题，只存 localStorage，绝不写 URL | `src/hooks/useLibrary.ts`、`src/hooks/useTheme.ts` |
 
 ---
 

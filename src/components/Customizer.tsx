@@ -87,7 +87,7 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex justify-end bg-overlay backdrop-blur-xs"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -162,7 +162,7 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
                     value={options.tuning[meta.key]}
                     onChange={(event) => setTuning(meta.key, Number(event.target.value))}
                     className="mt-2 w-full cursor-pointer"
-                    style={{ accentColor: 'hsl(38 76% 62%)' }}
+                    style={{ accentColor: 'var(--color-brand)' }}
                   />
                   <div className="mt-1 flex justify-between text-[11px] text-ink-faint">
                     <span>{meta.low}</span>
@@ -271,7 +271,7 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
                     checked={options.sections[meta.key]}
                     onChange={() => toggleSection(meta.key)}
                     className="h-4 w-4 cursor-pointer"
-                    style={{ accentColor: 'hsl(38 76% 62%)' }}
+                    style={{ accentColor: 'var(--color-brand)' }}
                   />
                   <span className="text-[13px] text-ink">{meta.label}</span>
                   <span className="ml-auto text-[11.5px] text-ink-faint">{meta.hint}</span>
@@ -298,7 +298,7 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
             type="button"
             onClick={() => void copy(prompt)}
             className={`flex-1 cursor-pointer px-3 py-2 text-[13px] font-medium transition-colors ${
-              copied ? 'bg-brand text-surface' : 'bg-ink text-surface hover:bg-brand'
+              copied ? 'bg-brand text-on-brand' : 'bg-ink text-on-ink hover:bg-brand hover:text-on-brand'
             }`}
           >
             {copied ? '已复制 ✓' : '复制定制提示词'}

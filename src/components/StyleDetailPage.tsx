@@ -1,6 +1,8 @@
 import { useEffect, useMemo, type JSX } from 'react';
 import type { StyleItem, StylePalette } from '@/types';
 import { useCopy } from '@/hooks/useCopy';
+import type { ThemeMode } from '@/hooks/useTheme';
+import ThemeToggle from '@/components/ThemeToggle';
 import {
   buildDesignMd,
   buildSingleMarkdown,
@@ -42,6 +44,9 @@ interface StyleDetailPageProps {
   onNavigate: (item: StyleItem) => void;
   /** 对比集非空时为底部对比条留出空间 */
   hasCompare: boolean;
+  /** 当前外观主题与切换动作，由 App 统一管理 */
+  theme: ThemeMode;
+  onToggleTheme: () => void;
 }
 
 interface PaletteSwatch {
@@ -123,6 +128,8 @@ export default function StyleDetailPage({
   next,
   onNavigate,
   hasCompare,
+  theme,
+  onToggleTheme,
 }: StyleDetailPageProps): JSX.Element {
   const { copied, copy } = useCopy();
   const { copied: linkCopied, copy: copyLink } = useCopy();
@@ -185,7 +192,7 @@ export default function StyleDetailPage({
               type="button"
               onClick={() => void copy(item.prompt)}
               className={`cursor-pointer px-3 py-1.5 text-[12.5px] font-medium transition-colors ${
-                copied ? 'bg-brand text-surface' : 'bg-ink text-surface hover:bg-brand'
+                copied ? 'bg-brand text-on-brand' : 'bg-ink text-on-ink hover:bg-brand hover:text-on-brand'
               }`}
             >
               {copied ? '已复制 ✓' : '复制提示词'}
@@ -214,6 +221,7 @@ export default function StyleDetailPage({
             <button type="button" onClick={() => void copyLink(buildShareLink(item.id))} className={textActionClass}>
               {linkCopied ? '链接已复制 ✓' : '分享'}
             </button>
+            <ThemeToggle theme={theme} onToggle={onToggleTheme} />
           </div>
         </div>
       </div>
