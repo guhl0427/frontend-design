@@ -3,6 +3,7 @@
  * 覆盖：S1 详情页结构与返回 / W2 色板底衬 / W3 预览 aria-hidden / W7 favicon+OG
  *       F1 深链分享 / F2 Markdown 导出 / F4 定制抽屉
  *       F3 收藏与最近（localStorage + URL 纯净性）/ F5 多风格对比 / F9 DESIGN.md 导出
+ *       T dark/light 主题切换、持久化、样张隔离与存储异常
  *       D 卡片封面 ↔ 详情页 ↔ 展示区一一对应、各详情页结构统一
  *       回归：稀疏分类吸顶、li 语义与标题层级、控制台错误
  *
@@ -124,6 +125,10 @@ async function main() {
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
   });
+  // 外部字体与功能断言无关；返回空 CSS，避免网络不可达时 networkidle 永久等待。
+  await page.route('https://fonts.googleapis.com/**', (route) =>
+    route.fulfill({ status: 200, contentType: 'text/css', body: '' }),
+  );
 
   /* ---------------------------- W7 favicon / meta ---------------------------- */
   const favicon = await page.request.get(`${BASE}/favicon.svg`);
@@ -530,6 +535,194 @@ async function main() {
         window.__dl.push(this.download);
       };
     });
+
+  /* ==================== T 外观主题（dark / light） ==================== */
+
+  await resetApp();
+  const darkThemeBaseline = await page.evaluate(() => {
+    const card = document.querySelector('article');
+    const preview = card.querySelector('[aria-hidden="true"]');
+    const copyButton = Array.from(card.querySelectorAll('button')).find((button) =>
+      button.textContent.includes('复制提示词'),
+    );
+    const cardStyle = getComputedStyle(card);
+    const copyStyle = getComputedStyle(copyButton);
+    const previewStyle = getComputedStyle(preview);
+    return {
+      rootClass: document.documentElement.className,
+      colorScheme: getComputedStyle(document.documentElement).colorScheme,
+      themeColor: document.querySelector('meta[name="theme-color"]').content,
+      bodyBg: getComputedStyle(document.body).backgroundColor,
+      cardBg: cardStyle.backgroundColor,
+      copyBg: copyStyle.backgroundColor,
+      copyColor: copyStyle.color,
+      preview: {
+        bg: previewStyle.backgroundColor,
+        color: previewStyle.color,
+        image: previewStyle.backgroundImage,
+      },
+    };
+  });
+  check(
+    'T1a 无主题记录时默认 dark，原生控件与浏览器主题色同步',
+    darkThemeBaseline.rootClass.includes('dark') &&
+      !darkThemeBaseline.rootClass.includes('light') &&
+      darkThemeBaseline.colorScheme === 'dark' &&
+      darkThemeBaseline.themeColor === '#0b0b0e' &&
+      (await readLS('style-gallery:theme')) === 'dark',
+    JSON.stringify(darkThemeBaseline),
+  );
+
+  await page.locator('[data-theme-toggle]').click();
+  await page.waitForFunction(
+    () =>
+      document.documentElement.classList.contains('light') &&
+      window.localStorage.getItem('style-gallery:theme') === 'light',
+  );
+  // 卡片带 200ms 颜色过渡，等待实际计算色到达终态而非按固定时长猜测。
+  await page.waitForFunction(
+    () => getComputedStyle(document.querySelector('article')).backgroundColor === 'rgb(253, 253, 252)',
+  );
+  const lightTheme = await page.evaluate(() => {
+    const card = document.querySelector('article');
+    const preview = card.querySelector('[aria-hidden="true"]');
+    const previewStyle = getComputedStyle(preview);
+    return {
+      rootClass: document.documentElement.className,
+      colorScheme: getComputedStyle(document.documentElement).colorScheme,
+      themeColor: document.querySelector('meta[name="theme-color"]').content,
+      bodyBg: getComputedStyle(document.body).backgroundColor,
+      cardBg: getComputedStyle(card).backgroundColor,
+      preview: { bg: previewStyle.backgroundColor, color: previewStyle.color, image: previewStyle.backgroundImage },
+    };
+  });
+  check(
+    'T1b 画廊切换 light 后同步根类、color-scheme、meta 与本地偏好',
+    lightTheme.rootClass.includes('light') &&
+      !lightTheme.rootClass.includes('dark') &&
+      lightTheme.colorScheme === 'light' &&
+      lightTheme.themeColor === '#f9f8f6' &&
+      lightTheme.bodyBg === 'rgb(249, 248, 246)' &&
+      lightTheme.cardBg === 'rgb(253, 253, 252)' &&
+      lightTheme.bodyBg !== darkThemeBaseline.bodyBg,
+    JSON.stringify(lightTheme),
+  );
+  check(
+    'T1c 外壳主题切换不改变风格预览样张颜色',
+    JSON.stringify(lightTheme.preview) === JSON.stringify(darkThemeBaseline.preview),
+    `dark=${JSON.stringify(darkThemeBaseline.preview)} light=${JSON.stringify(lightTheme.preview)}`,
+  );
+
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.documentElement.classList.contains('light'));
+  check(
+    'T2 刷新后恢复 light，且切换入口仍可用',
+    (await readLS('style-gallery:theme')) === 'light' &&
+      (await page.locator('[data-theme-toggle]').getAttribute('aria-label')) === '切换到深色模式',
+    `存储=${await readLS('style-gallery:theme')}`,
+  );
+
+  await page.locator('article button[data-cover-id]').first().click();
+  await page.waitForSelector('[data-style-detail]');
+  const lightShowcase = await page.locator('[data-showcase]').evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { bg: style.backgroundColor, color: style.color, image: style.backgroundImage };
+  });
+  await page.locator('[data-style-detail] [data-theme-toggle]').click();
+  await page.waitForFunction(() => document.documentElement.classList.contains('dark'));
+  const darkShowcase = await page.locator('[data-showcase]').evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { bg: style.backgroundColor, color: style.color, image: style.backgroundImage };
+  });
+  check(
+    'T3a 详情页可独立切换 dark，完整样张不随外壳主题变化',
+    (await page.locator('[data-style-detail] [data-theme-toggle]').count()) === 1 &&
+      JSON.stringify(lightShowcase) === JSON.stringify(darkShowcase),
+    `light=${JSON.stringify(lightShowcase)} dark=${JSON.stringify(darkShowcase)}`,
+  );
+
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('article');
+  const darkRoundtrip = await page.evaluate(() => ({
+    bodyBg: getComputedStyle(document.body).backgroundColor,
+    cardBg: getComputedStyle(document.querySelector('article')).backgroundColor,
+    copyBg: getComputedStyle(
+      Array.from(document.querySelector('article').querySelectorAll('button')).find((button) =>
+        button.textContent.includes('复制提示词'),
+      ),
+    ).backgroundColor,
+    copyColor: getComputedStyle(
+      Array.from(document.querySelector('article').querySelectorAll('button')).find((button) =>
+        button.textContent.includes('复制提示词'),
+      ),
+    ).color,
+  }));
+  check(
+    'T3b light → dark 往返后画廊外壳计算色与初始 dark 完全一致',
+    darkRoundtrip.bodyBg === darkThemeBaseline.bodyBg &&
+      darkRoundtrip.cardBg === darkThemeBaseline.cardBg &&
+      darkRoundtrip.copyBg === darkThemeBaseline.copyBg &&
+      darkRoundtrip.copyColor === darkThemeBaseline.copyColor,
+    `初始=${JSON.stringify(darkThemeBaseline)} 往返=${JSON.stringify(darkRoundtrip)}`,
+  );
+
+  await page.locator('[data-theme-toggle]').click();
+  await page.waitForFunction(() => document.documentElement.classList.contains('light'));
+  await page.locator('article').first().getByRole('button', { name: '定制', exact: true }).click();
+  await page.waitForSelector('[role="dialog"][aria-label^="定制"]');
+  const lightDrawer = await page.locator('[role="dialog"] > div').evaluate((el) => ({
+    bg: getComputedStyle(el).backgroundColor,
+    color: getComputedStyle(el).color,
+  }));
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('[role="dialog"]', { state: 'detached' });
+  for (const index of [0, 1]) {
+    await page.locator('article').nth(index).locator('button[aria-label*="对比集"]').click();
+  }
+  await page.locator('.fixed.inset-x-0.bottom-0 button', { hasText: '开始对比' }).click();
+  await page.waitForSelector('[role="dialog"][aria-label="风格对比"]');
+  const lightCompare = await page.locator('[role="dialog"] > div').evaluate((el) => ({
+    bg: getComputedStyle(el).backgroundColor,
+    color: getComputedStyle(el).color,
+  }));
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('[role="dialog"]', { state: 'detached' });
+  check(
+    'T4 light 下定制抽屉与对比弹窗使用同一套浅色表面和文字令牌',
+    lightDrawer.bg === 'rgb(253, 253, 252)' &&
+      lightCompare.bg === lightDrawer.bg &&
+      lightDrawer.color === lightCompare.color &&
+      lightDrawer.color === 'rgb(31, 31, 35)',
+    `抽屉=${JSON.stringify(lightDrawer)} 对比=${JSON.stringify(lightCompare)}`,
+  );
+
+  await page.evaluate(() => window.localStorage.setItem('style-gallery:theme', 'sepia'));
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.documentElement.classList.contains('dark'));
+  check(
+    'T5 非法主题值安全回退 dark，并规范化为有效偏好',
+    (await readLS('style-gallery:theme')) === 'dark' &&
+      (await page.locator('[data-theme-toggle]').getAttribute('data-theme')) === 'dark',
+    `存储=${await readLS('style-gallery:theme')}`,
+  );
+
+  await page.evaluate(() => {
+    window.__originalThemeSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = () => {
+      throw new DOMException('存储不可用', 'SecurityError');
+    };
+  });
+  await page.locator('[data-theme-toggle]').click();
+  await page.waitForFunction(() => document.documentElement.classList.contains('light'));
+  await page.evaluate(() => {
+    Storage.prototype.setItem = window.__originalThemeSetItem;
+    delete window.__originalThemeSetItem;
+  });
+  check(
+    'T6 localStorage 写入失败时当前页主题切换仍可用',
+    (await page.locator('[data-theme-toggle]').getAttribute('data-theme')) === 'light',
+    'Storage.setItem 抛出 SecurityError 后根类与按钮状态仍为 light',
+  );
 
   /* ==================== F3 收藏 / 最近（本地库） ==================== */
 

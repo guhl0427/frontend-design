@@ -8,6 +8,8 @@ import CompareTray from '@/components/CompareTray';
 import CompareDialog from '@/components/CompareDialog';
 import { useCopy } from '@/hooks/useCopy';
 import { useLibrary } from '@/hooks/useLibrary';
+import { useTheme } from '@/hooks/useTheme';
+import ThemeToggle from '@/components/ThemeToggle';
 import {
   buildBundleMarkdown,
   buildDesignMdBundle,
@@ -95,6 +97,7 @@ export default function App(): JSX.Element {
   const [notice, setNotice] = useState<string | null>(null);
   const { copied: linkCopied, copy: copyLink } = useCopy();
   const { favorites, recent, isFavorite, toggleFavorite, pushRecent, clearRecent } = useLibrary();
+  const { theme, toggleTheme } = useTheme();
 
   // 进入详情页前的画廊滚动位置与触发卡片：返回时回到原位、把焦点交还给那一次点击
   const galleryScrollRef = useRef(0);
@@ -286,6 +289,8 @@ export default function App(): JSX.Element {
           next={detailNav.next}
           onNavigate={handleNavigate}
           hasCompare={compareItems.length > 0}
+          theme={theme}
+          onToggleTheme={toggleTheme}
         />
         {overlays}
       </div>
@@ -299,8 +304,9 @@ export default function App(): JSX.Element {
         「纯 CSS 渲染」「可直接粘贴到某工具」这类说明由页面本身承担——作品比说明先出现。
       */}
       <header className="border-b border-line">
-        <div className="mx-auto max-w-[1400px] px-4 pt-8 pb-4 sm:px-6 lg:px-8">
-          <h1 className="text-[22px] font-semibold tracking-[-0.015em] text-ink">前端风格提示词画廊</h1>
+        <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-3 px-4 pt-8 pb-4 sm:px-6 lg:px-8">
+          <h1 className="text-balance text-[22px] font-semibold tracking-[-0.015em] text-ink">前端风格提示词画廊</h1>
+          <ThemeToggle theme={theme} onToggle={toggleTheme} />
         </div>
       </header>
 

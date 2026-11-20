@@ -10,6 +10,25 @@
     />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="theme-color" content="#0b0b0e" />
+    <script>
+      // 在 React 启动前恢复外观，避免浅色偏好先闪一帧 dark；非法值和存储异常均回退 dark。
+      (() => {
+        let stored = null;
+        try {
+          stored = window.localStorage.getItem('style-gallery:theme');
+        } catch {
+          // 隐私模式下沿用默认 dark。
+        }
+        const theme = stored === 'light' ? 'light' : 'dark';
+        const root = document.documentElement;
+        root.classList.toggle('dark', theme === 'dark');
+        root.classList.toggle('light', theme === 'light');
+        root.style.colorScheme = theme;
+        document
+          .querySelector('meta[name="theme-color"]')
+          ?.setAttribute('content', theme === 'light' ? '#f9f8f6' : '#0b0b0e');
+      })();
+    </script>
     <!-- 社交分享元信息（部署后建议把 og:url / og:image 换成线上绝对地址与 1200×630 的 PNG 封面） -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="前端风格提示词画廊" />
