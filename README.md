@@ -129,7 +129,6 @@ src/
   utils/                   viewState（URL 编解码）、export、promptComposer、promptSections
 docs/
   code-wiki/               面向维护者的 8 篇代码文档
-  internal/                过程留档（2026-09 的代码审查与调研），非对外文档
   Git提交规范.md            提交信息格式与钩子说明
 scripts/
   verify-styles.mjs        数据校验
@@ -150,7 +149,7 @@ scripts/
 | [运行构建与质量保障](docs/code-wiki/06-运行构建与质量保障.md) | 验证链与排查路径 |
 | [扩展指南与已知限制](docs/code-wiki/07-扩展指南与已知限制.md) | 加风格、加变体的完整步骤 |
 
-`docs/internal/` 存放过程性留档（2026-09 的代码审查与规划、立项前的开源项目调研）。它们保留是为了追溯设计决策，**不代表当前状态**，其中引用的文件名与行号已部分失效。当前状态的唯一真相是 `docs/code-wiki/` 与源码。
+`docs/code-wiki/` 描述的是**当前状态**，与源码冲突时以源码为准。过程性留档（早期代码审查、竞品调研）不随仓库发布，需要追溯设计决策时查 `git log`。
 
 ## 部署
 
