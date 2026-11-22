@@ -1,4 +1,5 @@
 import type { CustomizeOptions, PreviewConfig, StyleItem } from '@/types';
+import { usesConfigRadius } from '@/components/stylePrimitives';
 
 /** 定制器默认值：居中档位 + 空品牌占位，等于「原样使用该风格」 */
 export const DEFAULT_CUSTOMIZE: CustomizeOptions = {
@@ -112,9 +113,39 @@ function isSectionDisabled(title: string, options: CustomizeOptions): boolean {
 }
 
 /**
- * 以某条风格提示词为基底，叠加三档参数与品牌占位符，生成定制版提示词。
+ * 定制参数的「落地值」：只输出真正改变了原规格的项。
+ *
+ * 预览与提示词必须同源——预览用的圆角 / 字距 / 版式来自 derivePreview 的结果，
+ * 提示词就写同一个值，不写「实验度 9/10」这种需要读者二次换算的描述。
+ * 未改变的项不输出：否则会把预览侧的实现细节（如容器内边距）误当成设计规格写进提示词。
  */
-export function composePrompt(item: StyleItem, options: CustomizeOptions): string {
+function describeDerivedOverrides(item: StyleItem, derived: DerivedPreview): string[] {
+  const lines: string[] = [];
+  if (derived.config.radius !== item.preview.radius) {
+    lines.push(`- 圆角：${derived.config.radius}（覆盖前文的 ${item.preview.radius}，与预览一致）`);
+  }
+  if (derived.config.titleLetterSpacing !== item.preview.titleLetterSpacing) {
+    lines.push(
+      `- 标题字距：${derived.config.titleLetterSpacing}（覆盖前文的 ${item.preview.titleLetterSpacing}）`,
+    );
+  }
+  if (derived.asymmetric) {
+    lines.push('- 版式：允许模块以 3～9px 做纵向错位、打破等宽网格，正文与控件仍保持水平对齐');
+  }
+  return lines;
+}
+
+/**
+ * 以某条风格提示词为基底，叠加三档参数与品牌占位符，生成定制版提示词。
+ *
+ * 第三个参数是「预览已使用的推导结果」。定制器必须把它传进来，
+ * 保证复制走的文本与屏幕上看到的那一版是同一个对象算出来的；缺省时内部自行推导。
+ */
+export function composePrompt(
+  item: StyleItem,
+  options: CustomizeOptions,
+  derived: DerivedPreview = derivePreview(item, options),
+): string {
   const { tuning, brand } = options;
   const { head, sections } = splitSections(item.prompt);
   const kept = sections.filter((section) => !isSectionDisabled(section.title, options));
@@ -147,10 +178,13 @@ export function composePrompt(item: StyleItem, options: CustomizeOptions): strin
     `- 信息密度 ${tuning.density}/10：${describeDensity(tuning.density)}`,
   ];
 
+  const overrideLines = describeDerivedOverrides(item, derived);
+
   const customBlock = [
     '## 定制参数',
     tuningLines.join('\n'),
     brandLines.length > 0 ? brandLines.join('\n') : '- 品牌占位符：无（沿用该风格的示例文案）',
+    ...overrideLines,
     '- 优先级声明：若上述定制参数与本提示词前文的默认值冲突，以定制参数为准；无障碍对比度（≥ 4.5:1）不可被任何参数覆盖',
   ].join('\n');
 
@@ -168,12 +202,30 @@ export interface DerivedPreview {
   asymmetric: boolean;
 }
 
+/** 只缩放 px 值：百分比、rem、calc 原样返回，避免把 `50%` 变成 `50px` 这类静默破坏 */
+const PX_RADIUS = /^(\d+(?:\.\d+)?)px$/;
+
+/**
+ * 按布局实验度缩放圆角。
+ *
+ * 四角不等宽（如 `16px 6px 18px 8px`）是该风格的手写签名，必须逐个值缩放后再拼回，
+ * 不能 parseFloat 取第一个数就整体替换——那会把签名压成单一圆角。
+ * 0px 与胶囊（≥999px）属于「不可再变」的两端，不参与缩放。
+ */
 function scaleRadius(radius: string, variance: number): string {
-  const numeric = Number.parseFloat(radius);
-  if (Number.isNaN(numeric) || numeric <= 0) return radius;
-  if (variance <= 3) return `${Math.min(numeric, 8)}px`;
-  if (variance <= 6) return radius;
-  return `${Math.min(Math.round(numeric * 1.8), 32)}px`;
+  return radius
+    .trim()
+    .split(/\s+/)
+    .map((part) => {
+      const match = PX_RADIUS.exec(part);
+      if (match === null) return part;
+      const numeric = Number.parseFloat(match[1]);
+      if (numeric === 0 || numeric >= 999) return part;
+      if (variance <= 3) return `${Math.min(numeric, 8)}px`;
+      if (variance <= 6) return part;
+      return `${Math.min(Math.round(numeric * 1.8), 32)}px`;
+    })
+    .join(' ');
 }
 
 function paddingByDensity(density: number): string {
@@ -192,7 +244,8 @@ export function derivePreview(item: StyleItem, options: CustomizeOptions): Deriv
   const config: PreviewConfig = {
     ...item.preview,
     palette: { ...item.preview.palette },
-    radius: scaleRadius(item.preview.radius, tuning.variance),
+    // 形状自锁的变体（像素 / 手绘 / 孔版）不认 cfg.radius，缩放它只会让提示词声称一个预览里不存在的值
+    radius: usesConfigRadius(item.preview) ? scaleRadius(item.preview.radius, tuning.variance) : item.preview.radius,
     titleLetterSpacing: tuning.variance >= 8 ? '-0.03em' : item.preview.titleLetterSpacing,
   };
 

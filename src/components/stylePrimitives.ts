@@ -8,6 +8,18 @@ import type { ButtonVariant, CardVariant, PreviewConfig, StylePalette } from '@/
   这些函数只返回视觉属性，尺寸与排版由调用方决定。
 */
 
+/**
+ * 形状自锁的变体：圆角由变体自身的签名决定，`cfg.radius` 不参与渲染。
+ * 改下面的 switch 分派时必须同步这两个集合，否则「圆角」参数会声称一个预览并不存在的值。
+ */
+const RADIUS_PINNED_CARD_VARIANTS: ReadonlySet<CardVariant> = new Set(['pixel', 'sketch', 'riso']);
+const RADIUS_PINNED_BUTTON_VARIANTS: ReadonlySet<ButtonVariant> = new Set(['pixel', 'riso']);
+
+/** 该配置的圆角是否真的由 `cfg.radius` 驱动（决定定制器的「布局实验度」能否缩放圆角） */
+export function usesConfigRadius(cfg: Pick<PreviewConfig, 'cardVariant' | 'buttonVariant'>): boolean {
+  return !RADIUS_PINNED_CARD_VARIANTS.has(cfg.cardVariant) && !RADIUS_PINNED_BUTTON_VARIANTS.has(cfg.buttonVariant);
+}
+
 /** 主按钮外观（按变体分派） */
 export function stylePrimaryButton(
   variant: ButtonVariant,

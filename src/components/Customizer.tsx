@@ -68,8 +68,9 @@ export default function Customizer({ item, onClose }: CustomizerProps): JSX.Elem
     };
   }, [onClose]);
 
+  // 预览与提示词共用同一个 derived 对象：两处由同一份计算结果驱动，不可能再出现「预览变了、文本没变」
   const derived = useMemo(() => derivePreview(item, options), [item, options]);
-  const prompt = useMemo(() => composePrompt(item, options), [item, options]);
+  const prompt = useMemo(() => composePrompt(item, options, derived), [item, options, derived]);
   const isDefault = useMemo(
     () => JSON.stringify(options) === JSON.stringify(DEFAULT_CUSTOMIZE),
     [options],

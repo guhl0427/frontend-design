@@ -416,18 +416,26 @@ async function main() {
     const lastRow = pv.lastElementChild;
     const cards = Array.from(lastRow.children);
     const text = document.querySelector('[role=dialog] pre').textContent;
+    const radiusLine = /- 圆角：(.+?)（覆盖前文/.exec(text);
     return {
       padding: getComputedStyle(pv).padding,
       asym: cards.some((c) => getComputedStyle(c).transform !== 'none'),
       hasVariance: text.includes('布局实验度 9/10'),
       hasDensity: text.includes('信息密度 9/10'),
       hasCustomBlock: text.includes('## 定制参数'),
+      previewRadius: cards[0] ? getComputedStyle(cards[0]).borderRadius : '',
+      promptRadius: radiusLine ? radiusLine[1].trim() : '',
     };
   });
   check(
     'F4b 三档参数联动预览与提示词',
     tuned.padding === '12px' && tuned.asym && tuned.hasVariance && tuned.hasDensity && tuned.hasCustomBlock,
     JSON.stringify(tuned),
+  );
+  check(
+    'F4b2 圆角同源：预览渲染值与提示词写入值一致（所见即所交付）',
+    tuned.promptRadius !== '' && tuned.promptRadius === tuned.previewRadius,
+    JSON.stringify({ previewRadius: tuned.previewRadius, promptRadius: tuned.promptRadius }),
   );
 
   const brandName = `测试品牌${Date.now() % 1000}`;
