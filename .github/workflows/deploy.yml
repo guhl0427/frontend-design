@@ -40,9 +40,49 @@ jobs:
         with:
           path: dist
 
+  # 发布门禁：这个产物会真的进公网，断言失败就不该上线。
+  # 与 build 并行（各自 npm ci + build），不串行叠加时长。
+  ui:
+    name: 浏览器断言
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: 安装 Chromium
+        run: npx playwright install --with-deps chromium
+
+      - run: npm run build
+
+      # 起服务与断言放同一个 step：跨 step 依赖后台进程存活是未文档化的行为。
+      - name: 启动预览并运行断言
+        run: |
+          npx vite preview --host 127.0.0.1 --port 4173 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+
+          for i in $(seq 1 30); do
+            if curl -fsS -o /dev/null http://127.0.0.1:4173/; then break; fi
+            if [ "$i" -eq 30 ]; then
+              echo "预览服务启动超时" >&2
+              exit 1
+            fi
+            sleep 1
+          done
+
+          node scripts/verify-ui.cjs http://127.0.0.1:4173
+
   deploy:
     name: 发布
-    needs: build
+    needs: [build, ui]
     runs-on: ubuntu-latest
     environment:
       name: github-pages

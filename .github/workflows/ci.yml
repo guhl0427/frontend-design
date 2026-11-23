@@ -32,8 +32,7 @@ jobs:
         run: npm run build
 
   ui:
-    name: 浏览器断言（手动触发）
-    if: github.event_name == 'workflow_dispatch'
+    name: 浏览器断言
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -50,15 +49,21 @@ jobs:
 
       - run: npm run build
 
-      - name: 启动预览服务
+      # 起服务与断言必须在同一个 step：跨 step 依赖后台进程存活是未文档化的行为，
+      # 一旦进程被回收，断言只会报"连不上 4173"，掩盖真正原因。
+      - name: 启动预览并运行断言
         run: |
           npx vite preview --host 127.0.0.1 --port 4173 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+
           for i in $(seq 1 30); do
-            if curl -fsS -o /dev/null http://127.0.0.1:4173/; then echo "预览服务就绪"; exit 0; fi
+            if curl -fsS -o /dev/null http://127.0.0.1:4173/; then break; fi
+            if [ "$i" -eq 30 ]; then
+              echo "预览服务启动超时" >&2
+              exit 1
+            fi
             sleep 1
           done
-          echo "预览服务启动超时" >&2
-          exit 1
 
-      - name: 运行浏览器断言
-        run: node scripts/verify-ui.cjs http://127.0.0.1:4173
+          node scripts/verify-ui.cjs http://127.0.0.1:4173
