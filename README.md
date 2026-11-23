@@ -1,11 +1,10 @@
-# 前端风格提示词画廊 · style-gallery
+# 前端风格提示词画廊
 
 > 35 种前端视觉风格的结构化设计规格书。每种风格都给出可直接粘贴进 AI 编程工具（Claude Code、Cursor、v0 等）的七段式提示词，并配一版纯 CSS 实时预览，让「看起来是什么样」和「怎么写出来的」同时可见。
 
 这是一个纯静态单页应用：无后端、无账号、无追踪，`npm run build` 之后的产物可以放在任何静态托管上。
 
-<!-- TODO(部署后替换)：把下面一行换成真实地址，例如 https://<你的用户名>.github.io/style-gallery/ -->
-**在线演示**：部署后填入 → 部署步骤见 [部署](#部署)
+**在线演示**：https://guhl0427.github.io/frontend-design/
 
 ---
 
@@ -157,13 +156,13 @@ scripts/
 
 ### GitHub Pages
 
-仓库自带 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)：推送到 `main` 后自动执行 `npm ci` → `verify:data` → `build`，再把 `dist/` 发布到 Pages。
+仓库自带 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)：推送到 `main` 后自动执行 `npm ci` → `verify:data` → `build` → 浏览器断言，全部通过才把 `dist/` 发布到 Pages；断言失败则不部署。
 
 启用步骤：
 
 1. 仓库 **Settings → Pages** → **Source** 选择 **GitHub Actions**
 2. 推送 `main`，等待 Actions 中的 `Deploy to GitHub Pages` 完成
-3. 站点地址形如 `https://<用户名>.github.io/style-gallery/`，把它填回本文件顶部的「在线演示」
+3. 站点地址形如 `https://<用户名>.github.io/frontend-design/`
 
 深链使用查询参数（`?cat=art&style=bauhaus`）而非路径路由，静态托管不需要 404 重写规则，直接访问链接不会 404。
 
