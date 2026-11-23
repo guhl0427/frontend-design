@@ -60,5 +60,5 @@ jobs:
           echo "预览服务启动超时" >&2
           exit 1
 
-      - name: 运行 45 项浏览器断言
+      - name: 运行浏览器断言
         run: node scripts/verify-ui.cjs http://127.0.0.1:4173

@@ -48,7 +48,7 @@
 - **提示词定制**：三档强度滑块、品牌名占位符替换、七段段落开关，生成结果随改随看
 - **收藏与最近浏览**：存 localStorage，不写 URL，分享链接不会被个人偏好污染
 - **风格对比**：最多 3 条并排预览，7 段横向对照，差异一眼可见
-- **导出**：单条 / 合集 Markdown，以及对齐 [awesome-design-md](https://github.com/) 规范的 `DESIGN.md`
+- **导出**：单条 / 合集 Markdown，以及对齐 [awesome-design-md](https://github.com/VoltAgent/awesome-design-md) 规范的 `DESIGN.md`
 - **深链分享**：`?cat=art&q=bauhaus&style=bauhaus` 可直达筛选结果或某个风格详情页
 
 ## 快速开始
@@ -77,7 +77,7 @@ npm run preview -- --host 127.0.0.1
 | `npm run build` | `tsc -b` 类型检查 + Vite 生产构建 |
 | `npm run preview` | 预览构建产物 |
 | `npm run verify:data` | 校验 35 条数据完整性：字段齐全、提示词七段结构、色彩对比度 ≥ 4.5:1 |
-| `npm run verify:ui` | 浏览器端 45 项断言：详情页结构、深链、导出、收藏、对比、控制台零报错 |
+| `npm run verify:ui` | 浏览器端断言：详情页结构、深链、导出、收藏、对比、控制台零报错 |
 | `npm run verify` | `verify:data` + `build`，提交前跑这个 |
 
 `verify:ui` 需要 `playwright-core`（已在 devDependencies 中）与一个 Chromium。若本机没有浏览器缓存：
